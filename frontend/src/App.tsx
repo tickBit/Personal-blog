@@ -1,0 +1,172 @@
+import { useState, useCallback } from "react";
+import { Post } from "./types";
+import { INITIAL_POSTS } from "./data";
+import PostList from "./components/PostList";
+import PostReader from "./components/PostReader";
+import PostEditor from "./components/PostEditor";
+
+type View =
+  | { kind: "list" }
+  | { kind: "read"; id: string }
+  | { kind: "edit"; id: string }
+  | { kind: "create" };
+
+function generateId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function slugify(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+export default function App() {
+  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
+  const [view, setView] = useState<View>({ kind: "list" });
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  const navigate = useCallback((v: View) => {
+    setView(v);
+    setDeleteConfirm(null);
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleSave = useCallback(
+    (draft: Omit<Post, "id" | "slug" | "publishedAt" | "updatedAt">) => {
+      if (view.kind === "create") {
+        const now = new Date().toISOString().slice(0, 10);
+        const newPost: Post = {
+          ...draft,
+          id: generateId(),
+          slug: slugify(draft.title),
+          publishedAt: now,
+          updatedAt: now,
+        };
+        setPosts((prev) => [newPost, ...prev]);
+        navigate({ kind: "read", id: newPost.id });
+      } else if (view.kind === "edit") {
+        const now = new Date().toISOString().slice(0, 10);
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === view.id
+              ? {
+                  ...p,
+                  ...draft,
+                  slug: slugify(draft.title),
+                  updatedAt: now,
+                }
+              : p
+          )
+        );
+        navigate({ kind: "read", id: view.id });
+      }
+    },
+    [view, navigate]
+  );
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      if (deleteConfirm === id) {
+        setPosts((prev) => prev.filter((p) => p.id !== id));
+        navigate({ kind: "list" });
+        setDeleteConfirm(null);
+      } else {
+        setDeleteConfirm(id);
+      }
+    },
+    [deleteConfirm, navigate]
+  );
+
+  const currentPost =
+    view.kind === "read" || view.kind === "edit"
+      ? posts.find((p) => p.id === view.id) ?? null
+      : null;
+
+  return (
+    <div className="min-h-full bg-[var(--background)]">
+      <Header
+        onHome={() => navigate({ kind: "list" })}
+        onNew={() => navigate({ kind: "create" })}
+        showNew={view.kind !== "create" && view.kind !== "edit"}
+      />
+
+      <main className="max-w-3xl mx-auto px-6 pb-24">
+        {view.kind === "list" && (
+          <PostList
+            posts={posts}
+            onRead={(id) => navigate({ kind: "read", id })}
+          />
+        )}
+        {view.kind === "read" && currentPost && (
+          <PostReader
+            post={currentPost}
+            onEdit={() => navigate({ kind: "edit", id: currentPost.id })}
+            onDelete={() => handleDelete(currentPost.id)}
+            deleteConfirm={deleteConfirm === currentPost.id}
+            onCancelDelete={() => setDeleteConfirm(null)}
+          />
+        )}
+        {view.kind === "create" && (
+          <PostEditor
+            post={null}
+            onSave={handleSave}
+            onCancel={() => navigate({ kind: "list" })}
+          />
+        )}
+        {view.kind === "edit" && currentPost && (
+          <PostEditor
+            post={currentPost}
+            onSave={handleSave}
+            onCancel={() => navigate({ kind: "read", id: currentPost.id })}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+function Header({
+  onHome,
+  onNew,
+  showNew,
+}: {
+  onHome: () => void;
+  onNew: () => void;
+  showNew: boolean;
+}) {
+  return (
+    <header className="max-w-3xl mx-auto px-6 pt-10 pb-8">
+      <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-5">
+        <button
+          onClick={onHome}
+          className="group flex flex-col gap-0.5 text-left cursor-pointer"
+        >
+          <span
+            className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Marginal Notes
+          </span>
+          <span
+            className="text-[11px] tracking-[0.12em] uppercase text-[var(--muted-foreground)]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            A Personal Journal
+          </span>
+        </button>
+        {showNew && (
+          <button
+            onClick={onNew}
+            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] transition-colors cursor-pointer border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            <span>+</span>
+            <span>New Post</span>
+          </button>
+        )}
+      </div>
+    </header>
+  );
+}

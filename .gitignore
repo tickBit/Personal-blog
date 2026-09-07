@@ -1,0 +1,43 @@
+# Node.js and Vite generated files
+**/node_modules/
+**/dist/
+**/.vite/
+**/coverage/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java and Maven build output
+**/target/
+**/.mvn/timing.properties
+hs_err_pid*
+
+# Test reports and runtime artifacts
+**/surefire-reports/
+**/failsafe-reports/
+**/screenshots/
+**/traces/
+
+# Local environment and secret configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# IDE files
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
