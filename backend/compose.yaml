@@ -10,7 +10,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: secret
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
-    mem_limit: 384m
+    mem_limit: 320m
     ports:
       - '8080:8080'
 
@@ -36,6 +36,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    mem_limit: 256m
+    mem_limit: 192m
     ports:
       - '5432'
