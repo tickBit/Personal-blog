@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Post } from "./types";
-import { INITIAL_POSTS } from "./data";
+//import { INITIAL_POSTS } from "./data";
 import PostList from "./components/PostList";
 import PostReader from "./components/PostReader";
 import PostEditor from "./components/PostEditor";
+import axios from "axios";
 
 type View =
   | { kind: "list" }
@@ -23,7 +24,7 @@ function slugify(title: string) {
 }
 
 export default function App() {
-  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [view, setView] = useState<View>({ kind: "list" });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
@@ -33,6 +34,26 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
+    const readPosts = async() => {
+    
+      await axios.get("http://localhost:8080/api/posts",
+          { headers: {
+            "Content-Type": "application/json",
+          }
+          }).catch(error => {
+              console.log(error)
+          })
+          .then(response => {
+            
+            if (response && response.data.content) {
+              console.log("Posts fetched successfully:", response.data.content);
+              setPosts(response.data.content);
+            }
+                 
+          });
+               
+  }
+    
   const handleSave = useCallback(
     (draft: Omit<Post, "id" | "slug" | "publishedAt" | "updatedAt">) => {
       if (view.kind === "create") {
@@ -83,7 +104,18 @@ export default function App() {
     view.kind === "read" || view.kind === "edit"
       ? posts.find((p) => p.id === view.id) ?? null
       : null;
+  
+  useEffect(() => {
+  
+    readPosts();
 
+    // unmount component    
+    return () => {
+
+  	};
+    
+  }, []);
+  
   return (
     <div className="min-h-full bg-[var(--background)]">
       <Header
