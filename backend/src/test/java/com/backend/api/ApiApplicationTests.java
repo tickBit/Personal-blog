@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -98,6 +99,17 @@ class ApiApplicationTests {
 					.contentType(MediaType.APPLICATION_JSON)
 					.content("{}"))
 				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void adminCanDeletePost() throws Exception {
+		Post savedPost = postRepository.save(postEntity("to-delete", 1_000L));
+
+		mockMvc.perform(delete("/api/posts/{id}", savedPost.getId())
+				.with(user("admin").roles("ADMIN")))
+				.andExpect(status().isNoContent());
+
+		org.assertj.core.api.Assertions.assertThat(postRepository.existsById(savedPost.getId())).isFalse();
 	}
 
 }
