@@ -31,7 +31,9 @@ public class PostService {
                 post.getExcerpt(),
                 post.getBody(),
                 post.getTags(),
-                post.getCoverImage()));
+                post.getCoverImage(),
+                post.getCreatedAt(),
+                post.getUpdatedAt()));
 
         return new PageResponse<>(
                 posts.getContent(),
@@ -55,5 +57,9 @@ public class PostService {
         post.setCreatedAt(now);
         post.setUpdatedAt(now);
         postRepository.save(post);
+    }
+
+    public void deletePost(Long id) {
+        postRepository.deleteById(id);
     }
 }
