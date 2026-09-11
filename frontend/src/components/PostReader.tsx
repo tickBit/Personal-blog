@@ -135,9 +135,9 @@ function formatDate(iso: string) {
 }
 
 function renderBody(body: string) {
-  const paragraphs = body.split(/\n\n+/);
+  const paragraphs = body.split(/\n/);
   return paragraphs.map((block, i) => {
-    if (block.startsWith("> ")) {
+    if (block.startsWith(">")) {
       return (
         <blockquote key={i} className="prose">
           {block.slice(2)}
