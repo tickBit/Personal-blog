@@ -17,6 +17,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -110,6 +111,52 @@ class ApiApplicationTests {
 				.andExpect(status().isNoContent());
 
 		org.assertj.core.api.Assertions.assertThat(postRepository.existsById(savedPost.getId())).isFalse();
+	}
+
+	@Test
+	void adminCanUpdatePost() throws Exception {
+		Date createdAt = new Date(1_000L);
+		Post savedPost = postRepository.save(postEntity("original-title", createdAt.getTime()));
+
+		mockMvc.perform(put("/api/posts/{id}", savedPost.getId())
+				.with(user("admin").roles("ADMIN"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title": "Updated Title",
+						  "excerpt": "Updated excerpt",
+						  "body": "Updated body",
+						  "tags": ["updated", "post"],
+						  "coverImage": "/images/updated.png"
+						}
+						"""))
+				.andExpect(status().isOk());
+
+		Post updatedPost = postRepository.findById(savedPost.getId()).orElseThrow();
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getTitle()).isEqualTo("Updated Title");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getExcerpt()).isEqualTo("Updated excerpt");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getBody()).isEqualTo("Updated body");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getTags()).containsExactly("updated", "post");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getCoverImage()).isEqualTo("/images/updated.png");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getSlug()).isEqualTo("updated-title");
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getCreatedAt().getTime()).isEqualTo(createdAt.getTime());
+		org.assertj.core.api.Assertions.assertThat(updatedPost.getUpdatedAt()).isAfter(createdAt);
+	}
+
+	@Test
+	void updatingUnknownPostReturnsNotFound() throws Exception {
+		mockMvc.perform(put("/api/posts/{id}", 999L)
+				.with(user("admin").roles("ADMIN"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title": "Updated Title",
+						  "excerpt": "Updated excerpt",
+						  "body": "Updated body",
+						  "tags": ["updated"]
+						}
+						"""))
+				.andExpect(status().isNotFound());
 	}
 
 }

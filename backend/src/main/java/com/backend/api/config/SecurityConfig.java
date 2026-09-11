@@ -51,7 +51,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/posts", "/api/posts/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/posts", "/api/posts/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                // enable cors from frontend
                 .httpBasic(httpBasic -> {});
         return http.build();
     }
