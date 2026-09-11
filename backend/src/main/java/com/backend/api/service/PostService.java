@@ -6,7 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.api.controller.PageResponse;
 import com.backend.api.controller.PostResponse;
@@ -52,11 +54,29 @@ public class PostService {
         post.setBody(body);
         post.setTags(tags);
         post.setCoverImage(coverImage);
-        post.setSlug(title.trim().toLowerCase().replaceAll("\\s+", "-"));
+        post.setSlug(generateSlug(title));
         Date now = new Date();
         post.setCreatedAt(now);
         post.setUpdatedAt(now);
         postRepository.save(post);
+    }
+
+    public void updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        post.setTitle(title);
+        post.setExcerpt(excerpt);
+        post.setBody(body);
+        post.setTags(tags);
+        post.setCoverImage(coverImage);
+        post.setSlug(generateSlug(title));
+        post.setUpdatedAt(new Date());
+        postRepository.save(post);
+    }
+
+    private String generateSlug(String title) {
+        return title.trim().toLowerCase().replaceAll("\\s+", "-");
     }
 
     public void deletePost(Long id) {

@@ -80,9 +80,17 @@ public class PostController {
 
     @PutMapping("/{id}")
     public ResponseEntity<PostResponse> updatePost(
-            @PathVariable String id,
-            @RequestBody PostRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+            @PathVariable Long id,
+            @Valid @RequestBody PostRequest request) {
+        postService.updatePost(
+                id,
+                request.title(),
+                request.excerpt(),
+                request.body(),
+                request.tags(),
+                request.coverImage());
+
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
