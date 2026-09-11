@@ -1,5 +1,10 @@
 import { useState, useCallback } from "react";
+import axios from "axios";
 import { Post } from "../types";
+
+const credentials = btoa(
+  `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
+);
 
 interface Props {
   post: Post | null;
@@ -7,14 +12,14 @@ interface Props {
   onCancel: () => void;
 }
 
-export default function PostEditor({ post, onSave, onCancel }: Props) {
+export default function PostEditor({ post, /*onSave,*/ onCancel }: Props) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [body, setBody] = useState(post?.body ?? "");
   const [tagsInput, setTagsInput] = useState(post?.tags.join(", ") ?? "");
   const [coverImage, setCoverImage] = useState(post?.coverImage ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+  
   const validate = useCallback(() => {
     const e: Record<string, string> = {};
     if (!title.trim()) e.title = "Title is required.";
@@ -24,14 +29,40 @@ export default function PostEditor({ post, onSave, onCancel }: Props) {
     return Object.keys(e).length === 0;
   }, [title, excerpt, body]);
 
+  const save = async() => {
+    if (!validate()) return;
+    
+    const tags = tagsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    
+    await axios.put(`http://localhost:8080/api/posts/${post?.id || ""}`,
+          { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined },
+          { headers: {
+            Authorization: `Basic ${credentials}`,
+          }
+          }).catch(error => {
+              console.log(error)
+          })
+          .then(response => {
+            
+            if (response && response.data) {
+              console.log("Post saved successfully:", response.data);
+              save(); //{ title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined });
+            }
+                 
+          });
+  };
+  
   const handleSubmit = useCallback(() => {
     if (!validate()) return;
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    onSave({ title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined });
-  }, [validate, title, excerpt, body, tagsInput, coverImage, onSave]);
+    save() //{ title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined });
+  }, [validate, title, excerpt, body, tagsInput, coverImage]);
 
   const isEditing = post !== null;
 
