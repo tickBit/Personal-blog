@@ -103,6 +103,31 @@ class ApiApplicationTests {
 	}
 
 	@Test
+	void adminCanCreatePostAndReceivesCreatedPost() throws Exception {
+		mockMvc.perform(post("/api/posts")
+				.with(user("admin").roles("ADMIN"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+						  "title": "Created Title",
+						  "excerpt": "Created excerpt",
+						  "body": "Created body",
+						  "tags": ["created", "post"],
+						  "coverImage": "/images/created.png"
+						}
+						"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.id").isNotEmpty())
+				.andExpect(jsonPath("$.title").value("Created Title"))
+				.andExpect(jsonPath("$.excerpt").value("Created excerpt"))
+				.andExpect(jsonPath("$.body").value("Created body"))
+				.andExpect(jsonPath("$.tags[0]").value("created"))
+				.andExpect(jsonPath("$.coverImage").value("/images/created.png"))
+				.andExpect(jsonPath("$.createdAt").isNotEmpty())
+				.andExpect(jsonPath("$.updatedAt").isNotEmpty());
+	}
+
+	@Test
 	void adminCanDeletePost() throws Exception {
 		Post savedPost = postRepository.save(postEntity("to-delete", 1_000L));
 
