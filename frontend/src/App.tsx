@@ -6,6 +6,8 @@ import PostReader from "./components/PostReader";
 import PostEditor from "./components/PostEditor";
 import axios from "axios";
 
+const PAGE_SIZE = 5;
+
 type View =
   | { kind: "list" }
   | { kind: "read"; id: string }
@@ -27,32 +29,38 @@ export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [view, setView] = useState<View>({ kind: "list" });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-
+  const [page, setPage] = useState(0);
+  const [totalPosts, setTotalPosts] = useState(0);
+  
   const navigate = useCallback((v: View) => {
     setView(v);
     setDeleteConfirm(null);
     window.scrollTo(0, 0);
   }, []);
 
-    const readPosts = async() => {
-    
-      await axios.get("http://localhost:8080/api/posts",
-          { headers: {
-            "Content-Type": "application/json",
-          }
-          }).catch(error => {
-              console.log(error)
-          })
-          .then(response => {
-            
-            if (response && response.data.content) {
-              console.log("Posts fetched successfully:", response.data.content);
-              setPosts(response.data.content);
-            }
-                 
-          });
-               
-  }
+  const readPosts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/posts", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        params: {
+          page,
+          size: PAGE_SIZE,
+          sortBy: "createdAt",
+          descending: true,
+        },
+      });
+
+      if (response.data.content) {
+        setPosts(response.data.content);
+        setPage(response.data.page);
+        setTotalPosts(response.data.totalElements);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
     
   const handleSave = useCallback(
     (draft: Omit<Post, "id" | "slug" | "createdAt" | "updatedAt">) => {
@@ -106,15 +114,8 @@ export default function App() {
       : null;
   
   useEffect(() => {
-  
     readPosts();
-
-    // unmount component    
-    return () => {
-
-  	};
-    
-  }, []);
+  }, [page]);
   
   return (
     <div className="min-h-full bg-[var(--background)]">
@@ -128,6 +129,9 @@ export default function App() {
         {view.kind === "list" && (
           <PostList
             posts={posts}
+            page={page}
+            totalElements={totalPosts}
+            onPageChange={setPage}
             onRead={(id) => navigate({ kind: "read", id })}
           />
         )}

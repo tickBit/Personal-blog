@@ -2,10 +2,21 @@ import { Post } from "../types";
 
 interface Props {
   posts: Post[];
+  page: number;
+  totalElements: number;
+  onPageChange: (page: number) => void;
   onRead: (id: string) => void;
 }
 
-export default function PostList({ posts, onRead }: Props) {
+export default function PostList({
+  posts,
+  page,
+  totalElements,
+  onPageChange,
+  onRead,
+}: Props) {
+  const totalPages = Math.ceil(totalElements / 5);
+
   if (posts.length === 0) {
     return (
       <div className="pt-20 text-center">
@@ -31,6 +42,37 @@ export default function PostList({ posts, onRead }: Props) {
           />
         ))}
       </ol>
+      {totalPages > 1 && (
+        <nav
+          className="flex items-center justify-between border-t border-[var(--border)] py-5"
+          aria-label="Post pagination"
+        >
+          <button
+            type="button"
+            onClick={() => onPageChange(page - 1)}
+            disabled={page === 0}
+            className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            ← Previous
+          </button>
+          <span
+            className="text-[11px] text-[var(--muted-foreground)] tabular-nums"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            Page {page + 1} of {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages - 1}
+            className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            Next →
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
