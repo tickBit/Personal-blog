@@ -8,7 +8,7 @@ const credentials = btoa(
 
 interface Props {
   post: Post | null;
-  onSave: (draft: Omit<Post, "id" | "slug" | "publishedAt" | "updatedAt">) => void;
+  onSave: (draft: Omit<Post, "id" | "slug" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
 }
 

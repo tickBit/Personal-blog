@@ -37,8 +37,8 @@ export default function PostReader({
         className="flex items-center gap-4 mb-6 text-[10px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]"
         style={{ fontFamily: "var(--font-mono)" }}
       >
-        <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-        {post.updatedAt !== post.publishedAt && (
+        <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+        {post.updatedAt !== post.createdAt && (
           <>
             <span className="text-[var(--border)]">·</span>
             <span>Updated {formatDate(post.updatedAt)}</span>

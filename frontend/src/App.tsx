@@ -55,14 +55,14 @@ export default function App() {
   }
     
   const handleSave = useCallback(
-    (draft: Omit<Post, "id" | "slug" | "publishedAt" | "updatedAt">) => {
+    (draft: Omit<Post, "id" | "slug" | "createdAt" | "updatedAt">) => {
       if (view.kind === "create") {
         const now = new Date().toISOString().slice(0, 10);
         const newPost: Post = {
           ...draft,
           id: generateId(),
           slug: slugify(draft.title),
-          publishedAt: now,
+          createdAt: now,
           updatedAt: now,
         };
         setPosts((prev) => [newPost, ...prev]);

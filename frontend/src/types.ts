@@ -5,7 +5,7 @@ export interface Post {
   excerpt: string;
   body: string;
   tags: string[];
-  publishedAt: string;
+  createdAt: string;
   updatedAt: string;
   coverImage?: string;
 }

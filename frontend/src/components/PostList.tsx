@@ -73,9 +73,9 @@ function PostRow({
             <time
               className="text-[10px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]"
               style={{ fontFamily: "var(--font-mono)" }}
-              dateTime={post.publishedAt}
+              dateTime={post.createdAt}
             >
-              {formatDate(post.publishedAt)}
+              {formatDate(post.createdAt)}
             </time>
             {post.tags.length > 0 && (
               <span className="text-[var(--border)]">·</span>
@@ -102,7 +102,7 @@ function PostRow({
 }
 
 function formatDate(iso: string) {
-  return new Date(iso + "T12:00:00").toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
