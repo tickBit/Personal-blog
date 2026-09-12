@@ -17,7 +17,7 @@ WORKDIR /app
 
 COPY --from=build /workspace/target/api-0.0.1-SNAPSHOT.jar app.jar
 
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=55 -XX:InitialRAMPercentage=20 -XX:MaxMetaspaceSize=96m -XX:MaxDirectMemorySize=64m"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=40 -XX:InitialRAMPercentage=10 -XX:MaxMetaspaceSize=96m -XX:MaxDirectMemorySize=64m"
 
 EXPOSE 8080
 
