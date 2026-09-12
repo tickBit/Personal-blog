@@ -190,11 +190,11 @@ function renderBody(body: string) {
       }
       // print all *emphasized* text areas as emphasized in a paragraph
       return (<div key={i}>
-        {italics.length > 0 && italics.map((it, index) => (<>
+        {italics.length > 0 && italics.map((it, index) => (<span key={i.toString() + index.toString()}>
           {block.slice(it.textStart, it.start - 1)}
           <em>{it.text}</em>
           {index === italics.length - 1 && block.slice(it.start + 1 + it.text.length, block.length) }
-        </>
+        </span>
         ))}
       </div>
       )
