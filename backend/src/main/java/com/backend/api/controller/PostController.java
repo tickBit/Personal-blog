@@ -74,7 +74,6 @@ public class PostController {
         String coverImage = request.coverImage(); // image is give as path
         
         postService.createPost(title, excerpt, body, tags, coverImage);
-        
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

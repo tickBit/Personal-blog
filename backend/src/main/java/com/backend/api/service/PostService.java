@@ -48,6 +48,13 @@ public class PostService {
     }
     
     public void createPost(String title, String excerpt, String body, List<String> tags, String coverImage) {
+        
+        // Check if a post with the same slug already exists
+        String slug = generateSlug(title);
+        if (postRepository.findBySlug(slug) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A post with the same title already exists");
+        }
+        
         Post post = new Post();
         post.setTitle(title);
         post.setExcerpt(excerpt);
@@ -60,7 +67,7 @@ public class PostService {
         post.setUpdatedAt(now);
         postRepository.save(post);
     }
-
+    
     public void updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
