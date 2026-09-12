@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 
+import com.backend.api.entity.Post;
 import com.backend.api.service.PostService;
 
 @RestController
@@ -73,8 +74,17 @@ public class PostController {
         List<String> tags = request.tags();
         String coverImage = request.coverImage(); // image is give as path
         
-        postService.createPost(title, excerpt, body, tags, coverImage);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Post post = postService.createPost(title, excerpt, body, tags, coverImage);
+        PostResponse response = new PostResponse(
+            String.valueOf(post.getId()),
+            post.getTitle(),
+            post.getExcerpt(),
+            post.getBody(),
+            post.getTags(),
+            post.getCoverImage(),
+            post.getCreatedAt(),
+            post.getUpdatedAt());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")

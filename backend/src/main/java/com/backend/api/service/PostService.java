@@ -47,7 +47,7 @@ public class PostService {
                 posts.isLast());
     }
     
-    public void createPost(String title, String excerpt, String body, List<String> tags, String coverImage) {
+    public Post createPost(String title, String excerpt, String body, List<String> tags, String coverImage) {
         
         // Check if a post with the same slug already exists
         String slug = generateSlug(title);
@@ -65,7 +65,7 @@ public class PostService {
         Date now = new Date();
         post.setCreatedAt(now);
         post.setUpdatedAt(now);
-        postRepository.save(post);
+        return postRepository.save(post);
     }
     
     public void updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
