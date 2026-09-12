@@ -1,5 +1,4 @@
 import { Post } from "../types";
-
 interface Props {
   post: Post;
   onEdit: () => void;
@@ -7,6 +6,12 @@ interface Props {
   deleteConfirm: boolean;
   onCancelDelete: () => void;
 }
+
+type Italics = {
+  textStart: number,
+  start: number,
+  text: string,
+};
 
 export default function PostReader({
   post,
@@ -155,6 +160,45 @@ function renderBody(body: string) {
         </h3>
       );
     }
+    if (block.includes("*")) {
+      let italicText = "";
+      let start = 0, end = -1, textStart = 0;
+      let italics: Italics[] = [];
+      
+      for (let i = 0; i < block.length; i++) {
+        
+        if (block[i] === "*" && i !== end) {
+          start = i + 1;
+          
+          for (let j = i + 1; j < block.length; j++) {
+            italicText += block[j];
+            if (block[j] === "*") {
+              italicText = italicText.slice(0, -1);
+              end = j;
+              
+              italics.push({
+                textStart: textStart,
+                start: start,
+                text: italicText
+              });
+              italicText = "";
+              textStart = j + 1;
+              break;
+            }
+          }
+        }
+      }
+      // print all *emphasized* text areas as emphasized in a paragraph
+      return (<div key={i}>
+        {italics.length > 0 && italics.map((it, index) => (<>
+          {block.slice(it.textStart, it.start - 1)}
+          <em>{it.text}</em>
+          {index === italics.length - 1 && block.slice(it.start + 1 + it.text.length, block.length) }
+        </>
+        ))}
+      </div>
+      )
+    } 
     if (block.includes("\n- ")) {
       const [heading, ...items] = block.split("\n- ");
       return (
