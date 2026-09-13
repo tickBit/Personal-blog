@@ -8,11 +8,11 @@ const credentials = btoa(
 
 interface Props {
   post: Post | null;
-  onSave: (draft: Omit<Post, "id" | "slug" | "createdAt" | "updatedAt">) => void;
+  onSave: (newPost: Post) => void;
   onCancel: () => void;
 }
 
-export default function PostEditor({ post, /*onSave,*/ onCancel }: Props) {
+export default function PostEditor({ post, onSave, onCancel }: Props) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [body, setBody] = useState(post?.body ?? "");
@@ -28,41 +28,59 @@ export default function PostEditor({ post, /*onSave,*/ onCancel }: Props) {
     setErrors(e);
     return Object.keys(e).length === 0;
   }, [title, excerpt, body]);
-
-  const save = async() => {
+  
+  const save = async (tags: string[]): Promise<Post | undefined> => {
     if (!validate()) return;
     
-    const tags = tagsInput
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    
-    await axios.put(`http://localhost:8080/api/posts/${post?.id || ""}`,
+    try {  
+      const response = await axios.put(`http://localhost:8080/api/posts/${post?.id || ""}`,
           { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined },
           { headers: {
             Authorization: `Basic ${credentials}`,
+            "Content-Type": "application/json",
           }
-          }).catch(error => {
-              console.log(error)
-          })
-          .then(response => {
-            
-            if (response && response.data) {
-              console.log("Post saved successfully:", response.data);
-              save(); //{ title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined });
-            }
-                 
           });
+      return response.data;
+    }
+    catch (err) {
+      console.log(err);
+    }
+    
+    
   };
   
-  const handleSubmit = useCallback(() => {
+  const postNew = async (tags: string[]): Promise<Post | undefined> => {
+    
+    if (!validate()) return;
+
+    try {
+      const response = await axios.post(`http://localhost:8080/api/posts`,
+          { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined },
+      { headers: {
+            Authorization: `Basic ${credentials}`,
+            "Content-Type": "application/json",
+        }
+      });
+      console.log(response.data)
+      return response.data;
+      
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  
+  const handleSubmit = useCallback(async(isEditing: boolean) => {
     if (!validate()) return;
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    save() //{ title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined });
-  }, [validate, title, excerpt, body, tagsInput, coverImage]);
+ 
+    const newPost = isEditing ? await save(tags) : await postNew(tags);
+    
+    onSave(newPost!)
+    
+  }, [validate, title, excerpt, body, tagsInput, coverImage, onSave]);
 
   const isEditing = post !== null;
 
@@ -146,7 +164,7 @@ export default function PostEditor({ post, /*onSave,*/ onCancel }: Props) {
 
       <div className="mt-12 pt-8 border-t border-[var(--border)] flex items-center gap-4">
         <button
-          onClick={handleSubmit}
+          onClick={() => handleSubmit(isEditing)}
           className="text-[11px] tracking-[0.1em] uppercase bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-2.5 hover:bg-[var(--accent)] transition-colors cursor-pointer"
           style={{ fontFamily: "var(--font-mono)" }}
         >
