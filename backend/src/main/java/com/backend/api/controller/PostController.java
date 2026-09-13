@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,7 +72,7 @@ public class PostController {
         String excerpt = request.excerpt();
         String body = request.body();
         List<String> tags = request.tags();
-        String coverImage = request.coverImage(); // image is give as path
+        String coverImage = request.coverImage(); // image is given as path
         
         Post post = postService.createPost(title, excerpt, body, tags, coverImage);
         PostResponse response = new PostResponse(
