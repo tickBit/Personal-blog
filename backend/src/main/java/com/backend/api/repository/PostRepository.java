@@ -7,4 +7,5 @@ import com.backend.api.entity.Post;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     public Post findBySlug(String slug);
+
 }

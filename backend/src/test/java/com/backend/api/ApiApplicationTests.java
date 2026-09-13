@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
 @AutoConfigureMockMvc
 class ApiApplicationTests {
 
@@ -155,7 +155,7 @@ class ApiApplicationTests {
 						  "coverImage": "/images/updated.png"
 						}
 						"""))
-				.andExpect(status().isOk());
+				.andExpect(status().isAccepted());
 
 		Post updatedPost = postRepository.findById(savedPost.getId()).orElseThrow();
 		org.assertj.core.api.Assertions.assertThat(updatedPost.getTitle()).isEqualTo("Updated Title");

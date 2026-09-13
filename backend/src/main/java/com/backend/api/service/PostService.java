@@ -68,7 +68,7 @@ public class PostService {
         return postRepository.save(post);
     }
     
-    public void updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
+    public Post updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
 
@@ -79,7 +79,7 @@ public class PostService {
         post.setCoverImage(coverImage);
         post.setSlug(generateSlug(title));
         post.setUpdatedAt(new Date());
-        postRepository.save(post);
+        return postRepository.save(post);
     }
 
     private String generateSlug(String title) {
