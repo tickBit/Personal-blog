@@ -1,10 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { Post } from "./types";
-//import { INITIAL_POSTS } from "./data";
 import PostList from "./components/PostList";
 import PostReader from "./components/PostReader";
 import PostEditor from "./components/PostEditor";
 import axios from "axios";
+
+const credentials = btoa(
+  `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
+);
 
 const PAGE_SIZE = 5;
 
@@ -38,6 +41,22 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
+  const deletePost = async(id: string) => {
+  
+      try {  
+      const response = await axios.delete(`http://localhost:8080/api/posts/${id}`,
+          { headers: {
+            Authorization: `Basic ${credentials}`,
+            "Content-Type": "application/json",
+          }
+          });
+      return response.data;
+    }
+    catch (err) {
+      console.log(err);
+    }
+  }
+
   const readPosts = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/posts", {
@@ -62,34 +81,18 @@ export default function App() {
     }
   };
     
-  const handleSave = useCallback(
-    (draft: Omit<Post, "id" | "slug" | "createdAt" | "updatedAt">) => {
+   const handleSave = useCallback(
+    (newPost: Post) => {
       if (view.kind === "create") {
-        const now = new Date().toISOString().slice(0, 10);
-        const newPost: Post = {
-          ...draft,
-          id: generateId(),
-          slug: slugify(draft.title),
-          createdAt: now,
-          updatedAt: now,
-        };
+        
+        console.log(newPost);
         setPosts((prev) => [newPost, ...prev]);
-        navigate({ kind: "read", id: newPost.id });
+        navigate({ kind: "list" });
       } else if (view.kind === "edit") {
-        const now = new Date().toISOString().slice(0, 10);
-        setPosts((prev) =>
-          prev.map((p) =>
-            p.id === view.id
-              ? {
-                  ...p,
-                  ...draft,
-                  slug: slugify(draft.title),
-                  updatedAt: now,
-                }
-              : p
-          )
-        );
-        navigate({ kind: "read", id: view.id });
+        console.log(newPost.id)
+        setPosts((prev) => [newPost, ...prev]);
+          
+        navigate({ kind: "read", id: newPost.id });
       }
     },
     [view, navigate]
@@ -98,6 +101,9 @@ export default function App() {
   const handleDelete = useCallback(
     (id: string) => {
       if (deleteConfirm === id) {
+        
+        deletePost(id);
+        
         setPosts((prev) => prev.filter((p) => p.id !== id));
         navigate({ kind: "list" });
         setDeleteConfirm(null);
@@ -110,7 +116,7 @@ export default function App() {
 
   const currentPost =
     view.kind === "read" || view.kind === "edit"
-      ? posts.find((p) => p.id === view.id) ?? null
+      ? posts.find((p) => p?.id === view.id) ?? null
       : null;
   
   useEffect(() => {
@@ -147,7 +153,7 @@ export default function App() {
         {view.kind === "create" && (
           <PostEditor
             post={null}
-            onSave={handleSave}
+            onSave={ handleSave }
             onCancel={() => navigate({ kind: "list" })}
           />
         )}
