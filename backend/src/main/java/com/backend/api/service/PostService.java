@@ -65,7 +65,9 @@ public class PostService {
         Date now = new Date();
         post.setCreatedAt(now);
         post.setUpdatedAt(now);
-        return postRepository.save(post);
+        postRepository.save(post);
+        
+        return post;
     }
     
     public Post updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {

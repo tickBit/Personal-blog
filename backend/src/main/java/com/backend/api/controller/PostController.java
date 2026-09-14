@@ -1,5 +1,6 @@
 package com.backend.api.controller;
 
+import com.backend.api.repository.PostRepository;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
@@ -26,15 +27,20 @@ import com.backend.api.service.PostService;
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
-
+    
+    private final PostRepository postRepository;
     private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_LENGTH_OF_COVER_IMAGE_URL = 384;
+    private static final int MAX_LENGTH_OF_BODY = 4096;
+    
     private static final List<String> SORTABLE_FIELDS = List.of("id", "title", "createdAt", "updatedAt", "slug");
 
     private final PostService postService;
     
     // constructor injection
-    public PostController(PostService postService) {
+    public PostController(PostService postService, PostRepository postRepository) {
         this.postService = postService;
+        this.postRepository = postRepository;
     }
     
     @GetMapping
@@ -67,44 +73,51 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@Valid @RequestBody PostRequest request) {
+    public ResponseEntity<Post> createPost(@Valid @RequestBody PostRequest request) {
+ 
+        if (!validate(request)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        
         String title = request.title();
         String excerpt = request.excerpt();
         String body = request.body();
         List<String> tags = request.tags();
         String coverImage = request.coverImage(); // image is given as path
-        
-        Post post = postService.createPost(title, excerpt, body, tags, coverImage);
-        PostResponse response = new PostResponse(
-            String.valueOf(post.getId()),
-            post.getTitle(),
-            post.getExcerpt(),
-            post.getBody(),
-            post.getTags(),
-            post.getCoverImage(),
-            post.getCreatedAt(),
-            post.getUpdatedAt());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+                
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(title, excerpt, body, tags, coverImage));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Post> updatePost(
             @PathVariable Long id,
             @Valid @RequestBody PostRequest request) {
-        Post post = postService.updatePost(
-                id,
-                request.title(),
-                request.excerpt(),
-                request.body(),
-                request.tags(),
-                request.coverImage());
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(post);
+        
+        if (id == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);        
+        if (postRepository.findById(id) == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        if (!validate(request)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        
+        return ResponseEntity.status(HttpStatus.OK).body(postService.updatePost(id, request.title(), request.body(), request.excerpt(), request.tags(), request.coverImage()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    private boolean validate(PostRequest request) {
+        if (request.title().trim() == "" || request.title() == null) return false;
+        if (request.excerpt().trim() == "" || request.excerpt() == null) return false;
+        
+        // limit also max length of body
+        if (request.body().trim() == "" || request.body() == null || request.body().length() > MAX_LENGTH_OF_BODY) return false;
+ 
+        // limit number of tags to 5
+        if (request.tags().isEmpty() || request.tags().size() > 5) return false;
+        
+        // limit length coverImage's URL
+        if (request.coverImage() != null) {
+            if (request.coverImage().length() > MAX_LENGTH_OF_COVER_IMAGE_URL) return false;
+        }
+        return true;
     }
 }
