@@ -29,9 +29,13 @@ import com.backend.api.service.PostService;
 public class PostController {
     
     private final PostRepository postRepository;
+    
+    private static final int MAX_LENGTH_OF_TITLE = 128;
+    private static final int MAX_LENGTH_OF_EXCERPT = 1024;
     private static final int MAX_PAGE_SIZE = 100;
     private static final int MAX_LENGTH_OF_COVER_IMAGE_URL = 384;
     private static final int MAX_LENGTH_OF_BODY = 4096;
+    private static final int MAX_AMOUNT_OF_TAGS = 5;
     
     private static final List<String> SORTABLE_FIELDS = List.of("id", "title", "createdAt", "updatedAt", "slug");
 
@@ -105,14 +109,14 @@ public class PostController {
     }
     
     private boolean validate(PostRequest request) {
-        if (request.title().trim() == "" || request.title() == null) return false;
-        if (request.excerpt().trim() == "" || request.excerpt() == null) return false;
-        
+        if (request.title().trim() == "" || request.title() == null || request.title().length() > MAX_LENGTH_OF_TITLE) return false;
+        if (request.excerpt().trim() == "" || request.excerpt() == null || request.excerpt().length() > MAX_LENGTH_OF_EXCERPT) return false;
+    
         // limit also max length of body
         if (request.body().trim() == "" || request.body() == null || request.body().length() > MAX_LENGTH_OF_BODY) return false;
  
-        // limit number of tags to 5
-        if (request.tags().isEmpty() || request.tags().size() > 5) return false;
+        // limit number of tags
+        if (request.tags().isEmpty() || request.tags().size() > MAX_AMOUNT_OF_TAGS) return false;
         
         // limit length coverImage's URL
         if (request.coverImage() != null) {
