@@ -17,10 +17,6 @@ type View =
   | { kind: "edit"; id: string }
   | { kind: "create" };
 
-function generateId() {
-  return Math.random().toString(36).slice(2, 10);
-}
-
 function slugify(title: string) {
   return title
     .toLowerCase()
