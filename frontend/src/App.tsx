@@ -3,7 +3,7 @@ import { Post } from "./types";
 import PostList from "./components/PostList";
 import PostReader from "./components/PostReader";
 import PostEditor from "./components/PostEditor";
-import axios from "axios";
+import { postService } from "./services/postService";
 
 const credentials = btoa(
   `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
@@ -16,13 +16,6 @@ type View =
   | { kind: "read"; id: string }
   | { kind: "edit"; id: string }
   | { kind: "create" };
-
-function slugify(title: string) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 export default function App() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -37,70 +30,45 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
-  const deletePost = async(id: string) => {
+  const deletePost = async(id: string, page: number) => {
   
-      try {  
-      const response = await axios.delete(`http://localhost:8080/api/posts/${id}`,
-          { headers: {
-            Authorization: `Basic ${credentials}`,
-            "Content-Type": "application/json",
-          }
-          });
-      return response.data;
-    }
-    catch (err) {
-      console.log(err);
-    }
+    const response = await postService.deletePost(id, page);
+    if (response !== undefined) setPosts(response);
+    return undefined;
   }
 
-  const readPosts = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/posts", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        params: {
-          page,
-          size: PAGE_SIZE,
-          sortBy: "createdAt",
-          descending: true,
-        },
-      });
-
-      if (response.data.content) {
-        setPosts(response.data.content);
-        setPage(response.data.page);
-        setTotalPosts(response.data.totalElements);
-      }
-    } catch (error) {
-      console.log(error);
+  const readPosts = async (page: number) => {
+    const response = await postService.readPosts(page, PAGE_SIZE);
+    
+    if (response !== undefined) {
+      setTotalPosts(response.data.totalElements);
+      setPosts(response.data.content);
     }
+    
+    console.log("ReadPosts: ", response);
   };
     
    const handleSave = useCallback(
-    (newPost: Post) => {
+    (posts: Post[]) => {
       if (view.kind === "create") {
         
-        console.log(newPost);
-        setPosts((prev) => [newPost, ...prev]);
+        setPosts(posts);
         navigate({ kind: "list" });
       } else if (view.kind === "edit") {
-        console.log(newPost.id)
-        setPosts((prev) => [newPost, ...prev]);
+        setPosts(posts);
           
-        navigate({ kind: "read", id: newPost.id });
+        navigate({ kind: "read", id: currentPost!.slug });
       }
     },
     [view, navigate]
   );
 
-  const handleDelete = useCallback(
-    (id: string) => {
+  const handleDelete = useCallback (
+    async(id: string, page: number) => {
       if (deleteConfirm === id) {
         
-        deletePost(id);
+        console.log(await deletePost(id, page));        
         
-        setPosts((prev) => prev.filter((p) => p.id !== id));
         navigate({ kind: "list" });
         setDeleteConfirm(null);
       } else {
@@ -112,11 +80,13 @@ export default function App() {
 
   const currentPost =
     view.kind === "read" || view.kind === "edit"
-      ? posts.find((p) => p?.id === view.id) ?? null
+      ? posts.find((p) => p?.slug === view.id) ?? null
       : null;
   
   useEffect(() => {
-    readPosts();
+   
+    readPosts(page); 
+    
   }, [page]);
   
   return (
@@ -134,14 +104,14 @@ export default function App() {
             page={page}
             totalElements={totalPosts}
             onPageChange={setPage}
-            onRead={(id) => navigate({ kind: "read", id })}
+            onRead={(slug) => navigate({ kind: "read", id: slug })}
           />
         )}
         {view.kind === "read" && currentPost && (
           <PostReader
             post={currentPost}
-            onEdit={() => navigate({ kind: "edit", id: currentPost.id })}
-            onDelete={() => handleDelete(currentPost.id)}
+            onEdit={() => navigate({ kind: "edit", id: currentPost.slug })}
+            onDelete={() => handleDelete(currentPost.id, page)}
             deleteConfirm={deleteConfirm === currentPost.id}
             onCancelDelete={() => setDeleteConfirm(null)}
           />
@@ -149,6 +119,7 @@ export default function App() {
         {view.kind === "create" && (
           <PostEditor
             post={null}
+            page={page}
             onSave={ handleSave }
             onCancel={() => navigate({ kind: "list" })}
           />
@@ -156,8 +127,9 @@ export default function App() {
         {view.kind === "edit" && currentPost && (
           <PostEditor
             post={currentPost}
+            page={page}
             onSave={handleSave}
-            onCancel={() => navigate({ kind: "read", id: currentPost.id })}
+            onCancel={() => navigate({ kind: "read", id: currentPost.slug })}
           />
         )}
       </main>

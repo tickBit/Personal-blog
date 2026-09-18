@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
-import { Post } from "../types";
+import { NewPost, Post } from "../types";
+import { postService } from "@/services/postService";
 
 const credentials = btoa(
   `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
@@ -8,11 +9,12 @@ const credentials = btoa(
 
 interface Props {
   post: Post | null;
-  onSave: (newPost: Post) => void;
+  page: number;
+  onSave: (posts: Post[]) => void;
   onCancel: () => void;
 }
 
-export default function PostEditor({ post, onSave, onCancel }: Props) {
+export default function PostEditor({ post, page, onSave, onCancel }: Props) {
   const [title, setTitle] = useState(post?.title ?? "");
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? "");
   const [body, setBody] = useState(post?.body ?? "");
@@ -29,56 +31,45 @@ export default function PostEditor({ post, onSave, onCancel }: Props) {
     return Object.keys(e).length === 0;
   }, [title, excerpt, body]);
   
-  const save = async (tags: string[]): Promise<Post | undefined> => {
+  const save = async (id: string, post: NewPost, page: number): Promise<Post[] | undefined> => {
     if (!validate()) return;
     
-    try {  
-      const response = await axios.put(`http://localhost:8080/api/posts/${post?.id || ""}`,
-          { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined },
-          { headers: {
-            Authorization: `Basic ${credentials}`,
-            "Content-Type": "application/json",
-          }
-          });
-      return response.data;
-    }
-    catch (err) {
-      console.log(err);
-    }
-    
-    
+      const response = await postService.savePost(id, post, page);
+      
+      if (response !== undefined) response;
+      return undefined;
   };
   
-  const postNew = async (tags: string[]): Promise<Post | undefined> => {
+  const postNew = async (newPost: NewPost, page: number): Promise<Post[] | undefined> => {
     
-    if (!validate()) return;
-
-    try {
-      const response = await axios.post(`http://localhost:8080/api/posts`,
-          { title: title.trim(), excerpt: excerpt.trim(), body: body.trim(), tags, coverImage: coverImage.trim() || undefined },
-      { headers: {
-            Authorization: `Basic ${credentials}`,
-            "Content-Type": "application/json",
-        }
-      });
-      console.log(response.data)
-      return response.data;
-      
-    } catch (err) {
-      console.log(err);
-    }
+    if (!validate()) return undefined;
+    const response = await postService.postNew(page, newPost);
+    if (response !== undefined) return response;
+    return undefined;
   }
   
-  const handleSubmit = useCallback(async(isEditing: boolean) => {
+  const handleSubmit = useCallback(async(isEditing: boolean, page: number) => {
     if (!validate()) return;
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
  
-    const newPost = isEditing ? await save(tags) : await postNew(tags);
+    let newPost: NewPost = {
+      "title": title,
+      "excerpt": excerpt,
+      "body": body,
+      "tags": tags,
+      "coverImage": coverImage ?? ""
+    }
+    console.log(newPost);
     
-    onSave(newPost!)
+    const posts: Post[] | undefined = isEditing ? await save(post!.id, post!, page) : await postNew(newPost, page);
+    
+    if (posts !== undefined && isEditing === false) onSave(posts);
+    if (posts !== undefined && isEditing === true) onSave(posts);
+    
+    return;
     
   }, [validate, title, excerpt, body, tagsInput, coverImage, onSave]);
 
@@ -164,7 +155,7 @@ export default function PostEditor({ post, onSave, onCancel }: Props) {
 
       <div className="mt-12 pt-8 border-t border-[var(--border)] flex items-center gap-4">
         <button
-          onClick={() => handleSubmit(isEditing)}
+          onClick={(e) => handleSubmit(isEditing, page)}
           className="text-[11px] tracking-[0.1em] uppercase bg-[var(--primary)] text-[var(--primary-foreground)] px-6 py-2.5 hover:bg-[var(--accent)] transition-colors cursor-pointer"
           style={{ fontFamily: "var(--font-mono)" }}
         >

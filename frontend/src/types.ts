@@ -9,3 +9,10 @@ export interface Post {
   updatedAt: string;
   coverImage?: string;
 }
+export interface NewPost {
+  title: string;
+  excerpt: string;
+  body: string;
+  tags: string[];
+  coverImage?: string;
+}

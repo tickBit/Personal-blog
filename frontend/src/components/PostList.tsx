@@ -16,7 +16,10 @@ export default function PostList({
   onRead,
 }: Props) {
   const totalPages = Math.ceil(totalElements / 5);
-
+  
+  console.log("tel", totalElements);
+  console.log("totalP:", totalPages);
+  
   if (posts.length === 0) {
     return (
       <div className="pt-20 text-center">
@@ -35,10 +38,10 @@ export default function PostList({
       <ol className="divide-y divide-[var(--border)]">
         {posts.map((post, i) => (
           <PostRow
-            key={post.id}
+            key={post.slug}
             post={post}
             index={posts.length - i}
-            onClick={() => onRead(post.id)}
+            onClick={() => onRead(post.slug)}
           />
         ))}
       </ol>
