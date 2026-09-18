@@ -40,6 +40,7 @@ public class PostController {
     private static final List<String> SORTABLE_FIELDS = List.of("id", "title", "createdAt", "updatedAt", "slug");
 
     private final PostService postService;
+
     
     // constructor injection
     public PostController(PostService postService, PostRepository postRepository) {
@@ -63,7 +64,7 @@ public class PostController {
         if (!SORTABLE_FIELDS.contains(sortBy)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported sortBy field: " + sortBy);
         }
-
+        
         Sort.Direction direction = descending ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -71,9 +72,9 @@ public class PostController {
     }
     
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> getPost(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    @GetMapping("/{slug}")
+    public ResponseEntity<PostResponse> getPost(@PathVariable String slug) {
+        return ResponseEntity.ok(postService.getPostBySlug(slug));
     }
 
     @PostMapping
@@ -99,13 +100,14 @@ public class PostController {
         if (postRepository.findById(id) == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         if (!validate(request)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         
-        return ResponseEntity.status(HttpStatus.OK).body(postService.updatePost(id, request.title(), request.body(), request.excerpt(), request.tags(), request.coverImage()));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(postService.updatePost(id, request.title(), request.excerpt(), request.body(), request.tags(), request.coverImage()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+    public ResponseEntity<PostResponse> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
     
     private boolean validate(PostRequest request) {

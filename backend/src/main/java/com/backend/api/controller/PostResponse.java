@@ -5,6 +5,7 @@ import java.util.List;
 
 public record PostResponse(
         String id,
+        String slug,
         String title,
         String excerpt,
         String body,

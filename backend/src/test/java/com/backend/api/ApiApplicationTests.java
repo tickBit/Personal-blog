@@ -21,7 +21,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+@SpringBootTest(properties = {
+		"spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+		"spring.datasource.driver-class-name=org.h2.Driver",
+		"spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
+})
 @AutoConfigureMockMvc
 class ApiApplicationTests {
 
@@ -125,6 +129,16 @@ class ApiApplicationTests {
 				.andExpect(jsonPath("$.coverImage").value("/images/created.png"))
 				.andExpect(jsonPath("$.createdAt").isNotEmpty())
 				.andExpect(jsonPath("$.updatedAt").isNotEmpty());
+	}
+
+	@Test
+	void getPostBySlugReturnsPost() throws Exception {
+		postRepository.save(postEntity("first-post", 1_000L));
+
+		mockMvc.perform(get("/api/posts/first-post"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.slug").value("first-post"))
+				.andExpect(jsonPath("$.title").value("first-post"));
 	}
 
 	@Test

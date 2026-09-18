@@ -29,6 +29,7 @@ public class PostService {
     public PageResponse<PostResponse> getPosts(Pageable pageable) {
         Page<PostResponse> posts = postRepository.findAll(pageable).map(post -> new PostResponse(
                 String.valueOf(post.getId()),
+                post.getSlug(),
                 post.getTitle(),
                 post.getExcerpt(),
                 post.getBody(),
@@ -46,12 +47,28 @@ public class PostService {
                 posts.isFirst(),
                 posts.isLast());
     }
+
+    public PostResponse getPostBySlug(String slug) {
+        Post post = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+
+        return new PostResponse(
+                String.valueOf(post.getId()),
+                post.getSlug(),
+                post.getTitle(),
+                post.getExcerpt(),
+                post.getBody(),
+                post.getTags(),
+                post.getCoverImage(),
+                post.getCreatedAt(),
+                post.getUpdatedAt());
+    }
     
     public Post createPost(String title, String excerpt, String body, List<String> tags, String coverImage) {
         
         // Check if a post with the same slug already exists
         String slug = generateSlug(title);
-        if (postRepository.findBySlug(slug) != null) {
+        if (postRepository.findBySlug(slug).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A post with the same title already exists");
         }
         
