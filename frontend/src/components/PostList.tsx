@@ -1,3 +1,4 @@
+import { PAGE_SIZE } from "@/App";
 import { Post } from "../types";
 
 interface Props {
@@ -16,9 +17,6 @@ export default function PostList({
   onRead,
 }: Props) {
   const totalPages = Math.ceil(totalElements / 5);
-  
-  console.log("tel", totalElements);
-  console.log("totalP:", totalPages);
   
   if (posts.length === 0) {
     return (
@@ -40,7 +38,7 @@ export default function PostList({
           <PostRow
             key={post.slug}
             post={post}
-            index={posts.length - i}
+            index={(totalElements - ((page + 1) * PAGE_SIZE) + (5 - i))}
             onClick={() => onRead(post.slug)}
           />
         ))}

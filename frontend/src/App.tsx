@@ -9,7 +9,7 @@ const credentials = btoa(
   `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
 );
 
-const PAGE_SIZE = 5;
+export const PAGE_SIZE = 5;
 
 type View =
   | { kind: "list" }
