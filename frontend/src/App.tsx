@@ -6,6 +6,7 @@ import PostEditor from "./components/PostEditor";
 import Login from "./components/Login";
 import { postService } from "./services/postService";
 import { authService } from "./services/authService";
+import Contact from "./components/Contact";
 
 export const PAGE_SIZE = 5;
 
@@ -14,6 +15,7 @@ type View =
   | { kind: "read"; id: string }
   | { kind: "edit"; id: string }
   | { kind: "create" }
+  | { kind: "contact" }
   | { kind: "login" };
 
 const initialView = (): View =>
@@ -100,12 +102,16 @@ export default function App() {
     },
     [deleteConfirm, navigate]
   );
-
+  
+  const handleContact = () => {
+    console.log("handle contact");
+  };
+  
   const currentPost =
     view.kind === "read" || view.kind === "edit"
       ? posts.find((p) => p?.slug === view.id) ?? null
       : null;
-  
+                                    
   useEffect(() => {
    
     readPosts(page); 
@@ -116,6 +122,7 @@ export default function App() {
     <div className="min-h-full bg-[var(--background)]">
       <Header
         onHome={() => navigate({ kind: "list" })}
+        onContact={() => navigate({ kind: "contact"})}
         onNew={() => navigate({ kind: "create" })}
         showNew={view.kind !== "create" && view.kind !== "edit"}
         authenticated={authenticated}
@@ -158,6 +165,12 @@ export default function App() {
             onCancel={() => navigate({ kind: "read", id: currentPost.slug })}
           />
         )}
+        {view.kind === "contact" && (
+          <Contact
+            onContact={() => handleContact()}
+            onCancel={() => navigate({ kind: "list"})}
+          />
+        )}
       </main>
     </div>
   );
@@ -166,12 +179,14 @@ export default function App() {
 function Header({
   onHome,
   onNew,
+  onContact,
   showNew,
   authenticated,
   onLogout,
 }: {
   onHome: () => void;
   onNew: () => void;
+  onContact: () => void;
   showNew: boolean;
   authenticated: boolean;
   onLogout: () => void;
@@ -196,6 +211,18 @@ function Header({
             A Portfolio Project
           </span>
         </button>
+        {!authenticated && (
+        <div className="flex items-right gap-4">
+          <button onClick={ onContact }
+            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] transition-colors cursor-pointer border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+          <span>
+            Contact
+          </span>
+          </button>
+        </div>
+        )}
         {authenticated && (
           <div className="flex items-center gap-4">
             {showNew && (
