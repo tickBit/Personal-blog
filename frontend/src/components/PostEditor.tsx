@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
 import { NewPost, Post } from "../types";
 import { postService } from "@/services/postService";
 
