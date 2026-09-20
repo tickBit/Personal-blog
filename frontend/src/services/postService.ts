@@ -1,12 +1,14 @@
 import { NewPost, Post } from "@/types";
 import axios from "axios";
-
-const credentials = btoa(
-  `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
-);
+import { authService } from "./authService";
 
 const PAGE_SIZE = 5;
-const BASE_URL = "http://localhost:8080/api";
+const BASE_URL = `${import.meta.env.VITE_API_URL ?? "http://localhost:8080"}/api`;
+
+const authHeaders = async () => ({
+    Authorization: `Bearer ${await authService.getAccessToken()}`,
+    "Content-Type": "application/json",
+});
 
 export const postService = {
     
@@ -35,15 +37,14 @@ export const postService = {
     async deletePost(id: string, page: number): Promise<Post[] | undefined> {
   
         try {  
-            const response = await axios.delete(`${BASE_URL}/posts/${id}`,
+            await axios.delete(`${BASE_URL}/posts/${id}`,
                 { headers: {
-                Authorization: `Basic ${credentials}`,
-                "Content-Type": "application/json",
+                ...await authHeaders(),
                 }
             });
             const posts = await this.readPosts(page, PAGE_SIZE);
       
-            return posts;
+            return posts?.data.content;
         } catch (err) {
             console.log(err);
             return;
@@ -52,15 +53,14 @@ export const postService = {
 
     async savePost(id: string, post: NewPost, page: number): Promise<Post[] | undefined> {
         try {  
-        const response = await axios.put(`${BASE_URL}/posts/${id}`,
+        await axios.put(`${BASE_URL}/posts/${id}`,
             post,
             { headers: {
-                Authorization: `Basic ${credentials}`,
-                "Content-Type": "application/json",
+                ...await authHeaders(),
             }
             });
             const resp = await this.readPosts(page, PAGE_SIZE);
-            if (resp !== undefined) return resp;
+            if (resp !== undefined) return resp.data.content;
             return undefined;
         }
             catch (err) {
@@ -74,14 +74,13 @@ export const postService = {
             const response = await axios.post(`${BASE_URL}/posts`,
                  newPost  ,
             { headers: {
-                    Authorization: `Basic ${credentials}`,
-                    "Content-Type": "application/json",
+                    ...await authHeaders(),
                 }
             });
             console.log(response);
             
             const resp = await this.readPosts(page, PAGE_SIZE);
-            if (resp !== undefined) return resp;
+            if (resp !== undefined) return resp.data.content;
             return undefined;
             
         } catch (err) {
