@@ -2,10 +2,6 @@ import { useState, useCallback } from "react";
 import { NewPost, Post } from "../types";
 import { postService } from "@/services/postService";
 
-const credentials = btoa(
-  `${import.meta.env.VITE_ADMIN_USERNAME}:${import.meta.env.VITE_ADMIN_PASSWORD}`
-);
-
 interface Props {
   post: Post | null;
   page: number;
@@ -35,7 +31,7 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
     
       const response = await postService.savePost(id, post, page);
       
-      if (response !== undefined) response;
+      if (response !== undefined) return response;
       return undefined;
   };
   
@@ -63,7 +59,7 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
     }
     console.log(newPost);
     
-    const posts: Post[] | undefined = isEditing ? await save(post!.id, post!, page) : await postNew(newPost, page);
+    const posts: Post[] | undefined = isEditing ? await save(post!.id, newPost, page) : await postNew(newPost, page);
     
     if (posts !== undefined && isEditing === false) onSave(posts);
     if (posts !== undefined && isEditing === true) onSave(posts);
