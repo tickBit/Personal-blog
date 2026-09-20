@@ -100,7 +100,7 @@ public class PostController {
         if (postRepository.findById(id) == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         if (!validate(request)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(postService.updatePost(id, request.title(), request.excerpt(), request.body(), request.tags(), request.coverImage()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.updatePost(id, request.title(), request.excerpt(), request.body(), request.tags(), request.coverImage()));
     }
 
     @DeleteMapping("/{id}")
