@@ -14,7 +14,7 @@ public class LoginRequest {
         return this.username;
     }
     
-    public void SetUsername(String username) {
+    public void setUsername(String username) {
         this.username = username;
     }
     
