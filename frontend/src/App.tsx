@@ -187,13 +187,13 @@ function Header({
             className="font-serif text-2xl font-semibold tracking-tight text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors"
             style={{ fontFamily: "var(--font-serif)" }}
           >
-            Marginal Notes
+            Full-stack Notes
           </span>
           <span
             className="text-[11px] tracking-[0.12em] uppercase text-[var(--muted-foreground)]"
             style={{ fontFamily: "var(--font-mono)" }}
           >
-            A Personal Journal
+            A Portfolio Project
           </span>
         </button>
         {authenticated && (
