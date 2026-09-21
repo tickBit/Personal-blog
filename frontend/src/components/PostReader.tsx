@@ -1,8 +1,8 @@
 import { Post } from "../types";
 interface Props {
   post: Post;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   deleteConfirm: boolean;
   onCancelDelete: () => void;
 }
@@ -85,7 +85,7 @@ export default function PostReader({
       </div>
 
       {/* Actions */}
-      <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center gap-4">
+      {onEdit && onDelete && <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center gap-4">
         <button
           onClick={onEdit}
           className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors border border-[var(--border)] hover:border-[var(--foreground)] px-4 py-2 cursor-pointer"
@@ -126,7 +126,7 @@ export default function PostReader({
             </button>
           </div>
         )}
-      </div>
+      </div>}
     </article>
   );
 }

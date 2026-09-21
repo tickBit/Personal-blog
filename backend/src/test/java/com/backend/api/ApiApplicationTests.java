@@ -153,6 +153,15 @@ class ApiApplicationTests {
 	}
 
 	@Test
+	void adminDeletesPostWithInvalidId() throws Exception {
+
+		mockMvc.perform(delete("/api/posts/{id}", -1)
+				.with(user("admin").roles("ADMIN")))
+				.andExpect(status().isNotFound());
+
+	}
+	
+	@Test
 	void adminCanUpdatePost() throws Exception {
 		Date createdAt = new Date(1_000L);
 		Post savedPost = postRepository.save(postEntity("original-title", createdAt.getTime()));
@@ -169,7 +178,7 @@ class ApiApplicationTests {
 						  "coverImage": "/images/updated.png"
 						}
 						"""))
-				.andExpect(status().isAccepted());
+				.andExpect(status().isCreated());
 
 		Post updatedPost = postRepository.findById(savedPost.getId()).orElseThrow();
 		org.assertj.core.api.Assertions.assertThat(updatedPost.getTitle()).isEqualTo("Updated Title");

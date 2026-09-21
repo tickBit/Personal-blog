@@ -28,11 +28,7 @@ hs_err_pid*
 # IDE files
 .idea/
 *.iml
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
-!.vscode/launch.json
+.vscode/
 
 # Operating system and editor files
 .DS_Store
