@@ -9,6 +9,8 @@ type LoginResponse = {
   refreshToken: string;
 };
 
+let refreshPromise: Promise<string | null> | null = null;
+
 export const authService = {
   async login(username: string, password: string) {
     const { data } = await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
@@ -35,19 +37,27 @@ export const authService = {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) return null;
 
-    try {
-      const { data } = await axios.post<Pick<LoginResponse, "accessToken">>(
-        `${API_URL}/auth/refresh`,
-        { refreshToken },
-      );
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
-      return data.accessToken;
-    } catch {
-      this.logout();
-      return null;
+    if (!refreshPromise) {
+      refreshPromise = (async () => {
+        try {
+          const { data } = await axios.post<Pick<LoginResponse, "accessToken">>(
+            `${API_URL}/auth/refresh`,
+            { refreshToken },
+          );
+          localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
+          return data.accessToken;
+        } catch {
+          this.logout();
+          return null;
+        } finally {
+          refreshPromise = null;
+        }
+      })();
     }
-  },
-};
+
+    return refreshPromise;
+  }
+}
 
 function isExpired(token: string) {
   try {
