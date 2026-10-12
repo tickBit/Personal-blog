@@ -37,6 +37,7 @@ export const authService = {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) return null;
 
+    // Reuse one refresh request when several API calls need a token at once.
     if (!refreshPromise) {
       refreshPromise = (async () => {
         try {
@@ -47,6 +48,7 @@ export const authService = {
           localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
           return data.accessToken;
         } catch {
+          // Refresh failed, so clear the tokens and require a new login.
           this.logout();
           return null;
         } finally {
