@@ -18,7 +18,7 @@ export const postService = {
             const response = await axios(
                 `${BASE_URL}/posts`
                 , { headers: {
-                "Content-Type": "application/json",
+                    ...await authHeaders(),
                 },
                 params: {
                     page,
