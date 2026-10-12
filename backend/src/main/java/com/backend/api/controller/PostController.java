@@ -87,8 +87,13 @@ public class PostController {
         String body = request.body();
         List<String> tags = request.tags();
         String coverImage = request.coverImage(); // image is given as path
-                
-        return ResponseEntity.status(HttpStatus.CREATED).body(postService.createPost(title, excerpt, body, tags, coverImage));
+        
+        Post createdPost = postService.createPost(title, excerpt, body, tags, coverImage);
+        
+        if (createdPost == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
     @PutMapping("/{id}")
@@ -99,7 +104,10 @@ public class PostController {
         if (id == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);        
         if (postRepository.findById(id) == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         if (!validate(request)) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        
+
+        if (postService.updatePost(id, request.title(), request.excerpt(), request.body(), request.tags(), request.coverImage()) == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.updatePost(id, request.title(), request.excerpt(), request.body(), request.tags(), request.coverImage()));
     }
 

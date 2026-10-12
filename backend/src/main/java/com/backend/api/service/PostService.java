@@ -1,5 +1,6 @@
 package com.backend.api.service;
 
+import java.net.http.HttpResponse;
 import java.util.Date;
 import java.util.List;
 
@@ -27,25 +28,21 @@ public class PostService {
     }
     
     public PageResponse<PostResponse> getPosts(Pageable pageable) {
-        Page<PostResponse> posts = postRepository.findAll(pageable).map(post -> new PostResponse(
-                String.valueOf(post.getId()),
-                post.getSlug(),
-                post.getTitle(),
-                post.getExcerpt(),
-                post.getBody(),
-                post.getTags(),
-                post.getCoverImage(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()));
+        Page<Post> postPage = postRepository.findAll(pageable);
+        List<PostResponse> postResponses = postPage.getContent().stream()
+                .map(post -> new PostResponse(
+                        String.valueOf(post.getId()),
+                        post.getSlug(),
+                        post.getTitle(),
+                        post.getExcerpt(),
+                        post.getBody(),
+                        post.getTags(),
+                        post.getCoverImage(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt()))
+                .toList();
 
-        return new PageResponse<>(
-                posts.getContent(),
-                posts.getNumber(),
-                posts.getSize(),
-                posts.getTotalElements(),
-                posts.getTotalPages(),
-                posts.isFirst(),
-                posts.isLast());
+        return new PageResponse<PostResponse>(postResponses, postPage.getNumber(), postPage.getSize(), postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast(), postPage.isFirst());
     }
 
     public PostResponse getPostBySlug(String slug) {
@@ -68,6 +65,7 @@ public class PostService {
         
         // Check if a post with the same slug already exists
         String slug = generateSlug(title);
+
         if (postRepository.findBySlug(slug).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "A post with the same title already exists");
         }
@@ -82,9 +80,9 @@ public class PostService {
         Date now = new Date();
         post.setCreatedAt(now);
         post.setUpdatedAt(now);
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
         
-        return post;
+        return savedPost;
     }
     
     public Post updatePost(Long id, String title, String excerpt, String body, List<String> tags, String coverImage) {
@@ -98,6 +96,7 @@ public class PostService {
         post.setCoverImage(coverImage);
         post.setSlug(generateSlug(title));
         post.setUpdatedAt(new Date());
+
         return postRepository.save(post);
     }
 
