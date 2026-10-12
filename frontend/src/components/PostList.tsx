@@ -39,7 +39,7 @@ export default function PostList({
             key={post.slug}
             post={post}
             index={(totalElements - ((page + 1) * PAGE_SIZE) + (5 - i))}
-            onClick={() => onRead(post.slug)}
+            onClick={() => onRead(post.id.toString())}
           />
         ))}
       </ol>

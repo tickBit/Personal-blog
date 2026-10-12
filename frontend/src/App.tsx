@@ -7,6 +7,7 @@ import Login from "./components/Login";
 import { postService } from "./services/postService";
 import { authService } from "./services/authService";
 import Contact from "./components/Contact";
+import { HttpStatusCode } from "axios";
 
 export const PAGE_SIZE = 5;
 
@@ -28,8 +29,10 @@ export default function App() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
+  const [error, setError] = useState<boolean>(false);
   
-  const navigate = useCallback((v: View) => {
+  const navigate = useCallback((v: View) => {   
+    console.log(v);
     setView(v);
     const path = v.kind === "login" ? "/admin/login" : "/";
     window.history.pushState({}, "", path);
@@ -58,31 +61,80 @@ export default function App() {
   const deletePost = async(id: string, page: number) => {
   
     const response = await postService.deletePost(id, page);
-    if (response !== undefined) setPosts(response);
-    return undefined;
+    
+    if (typeof(response) === 'number' && response >= 400) {
+      console.log("Error code:", response);
+      setError(true);
+      return response;
+    }
+    if (response !== undefined && (typeof response !== 'number')) {
+      setPosts(prev => prev.filter(post => post.id !== id));
+      
+      if (posts.length < 5) readPosts(page);
+      
+      setError(false);
+      return 0;
+    }
+    else {
+      // unknown error
+      setError(true);
+      setPosts([])
+      return HttpStatusCode.InternalServerError;
+    }
   }
 
   const readPosts = async (page: number) => {
     const response = await postService.readPosts(page, PAGE_SIZE);
-    
-    if (response !== undefined) {
-      setTotalPosts(response.data.totalElements);
-      setPosts(response.data.content);
+
+    if (typeof response === "number") {
+      setError(true);
+      setPosts([]);
+      return;
     }
-    
-    console.log("ReadPosts: ", response);
+
+    if (response && typeof response === "object" && "data" in response) {
+      const payload = response.data as { totalElements?: number; content?: Post[] };
+      const content = Array.isArray(payload.content) ? payload.content : [];
+
+      setError(false);
+      setTotalPosts(payload.totalElements ?? 0);
+      setPosts(content);
+      
+      navigate({kind: "list"});
+      return;
+    }
+
+    setError(true);
+    setPosts([]);
   };
     
    const handleSave = useCallback(
-    (posts: Post[]) => {
+    (data: Post | number) => {
+      
       if (view.kind === "create") {
         
-        setPosts(posts);
+        if (typeof data !== "number" && data && typeof data === "object") {
+          setError(false);
+          setPosts(prevPosts => [data as Post, ...prevPosts]);
+        }
         navigate({ kind: "list" });
+        return;
       } else if (view.kind === "edit") {
-        setPosts(posts);
+        
+        if (typeof data !== "number" && data && typeof data === "object") {
           
-        navigate({ kind: "read", id: currentPost!.slug });
+          // convert id to String in data
+          const savedPost = { ...data, id: String(data.id)}
+          
+          setPosts(prevPosts => [...prevPosts.map(post => post.id === savedPost.id ? savedPost as Post : post)]);
+          setError(false);
+          navigate({ kind: "read", id: savedPost.id });
+          return;
+        } else {
+          setError(true);
+          navigate({ kind: "list" });
+          return;
+        }
       }
     },
     [view, navigate]
@@ -92,10 +144,17 @@ export default function App() {
     async(id: string, page: number) => {
       if (deleteConfirm === id) {
         
-        console.log(await deletePost(id, page));        
+        try {
+          if (await deletePost(id, page) > 0) setError(true); else {        
+            setError(false);
+            navigate({ kind: "list" });
+          }
+          setDeleteConfirm(null);
+        } catch (err) {
+          // unknown error
+          setError(true);
+        }
         
-        navigate({ kind: "list" });
-        setDeleteConfirm(null);
       } else {
         setDeleteConfirm(id);
       }
@@ -108,10 +167,10 @@ export default function App() {
   };
   
   const currentPost =
-    view.kind === "read" || view.kind === "edit"
-      ? posts.find((p) => p?.slug === view.id) ?? null
+    (view.kind === "read" || view.kind === "edit")
+      ? posts!.find((p) => p?.id === view.id) ?? null
       : null;
-                                    
+  
   useEffect(() => {
    
     readPosts(page); 
@@ -121,6 +180,7 @@ export default function App() {
   return (
     <div className="min-h-full bg-[var(--background)]">
       <Header
+        error={error}
         onHome={() => navigate({ kind: "list" })}
         onContact={() => navigate({ kind: "contact"})}
         onNew={() => navigate({ kind: "create" })}
@@ -137,14 +197,14 @@ export default function App() {
             page={page}
             totalElements={totalPosts}
             onPageChange={setPage}
-            onRead={(slug) => navigate({ kind: "read", id: slug })}
+            onRead={(id) => navigate({ kind: "read", id: id.toString() })}
           />
         )}
         {view.kind === "read" && currentPost && (
           <PostReader
             post={currentPost}
-            onEdit={authenticated ? () => navigate({ kind: "edit", id: currentPost.slug }) : undefined}
-            onDelete={authenticated ? () => handleDelete(currentPost.id, page) : undefined}
+            onEdit={authenticated ? () => navigate({ kind: "edit", id: currentPost!.id.toString() }) : undefined}
+            onDelete={authenticated ? () => handleDelete(currentPost!.id, page) : undefined}
             deleteConfirm={deleteConfirm === currentPost.id}
             onCancelDelete={() => setDeleteConfirm(null)}
           />
@@ -162,7 +222,7 @@ export default function App() {
             post={currentPost}
             page={page}
             onSave={handleSave}
-            onCancel={() => navigate({ kind: "read", id: currentPost.slug })}
+            onCancel={() => navigate({ kind: "read", id: currentPost!.id.toString() })}
           />
         )}
         {view.kind === "contact" && (
@@ -179,6 +239,7 @@ export default function App() {
 function Header({
   onHome,
   onNew,
+  error,
   onContact,
   showNew,
   authenticated,
@@ -186,6 +247,7 @@ function Header({
 }: {
   onHome: () => void;
   onNew: () => void;
+  error: boolean;
   onContact: () => void;
   showNew: boolean;
   authenticated: boolean;
@@ -211,7 +273,7 @@ function Header({
             A Portfolio Project
           </span>
         </button>
-        {!authenticated && (
+        {!authenticated ? (
         <div className="flex items-right gap-4">
           <button onClick={ onContact }
             className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] transition-colors cursor-pointer border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5"
@@ -222,7 +284,26 @@ function Header({
           </span>
           </button>
         </div>
+        ) : (<>
+          {error === true ? (
+           <div className="flex flex bg-red-100 items-right gap-4 text-[var(--muted-foreground)] transition-colors border-[var(--border)] px-3 py-1.5">
+            Status:
+            <div>
+              Error.
+            </div>
+           </div>
+                    )
+                  : (
+           <div className="flex flex bg-green-100 items-right gap-4 text-[var(--muted-foreground)] transition-colors border border-[var(--border)] px-3 py-1.5">
+            Status:
+            <div>
+              Ok.
+            </div>
+          </div> 
         )}
+          </>)
+        }
+         
         {authenticated && (
           <div className="flex items-center gap-4">
             {showNew && (

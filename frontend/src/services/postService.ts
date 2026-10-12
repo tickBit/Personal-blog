@@ -1,5 +1,5 @@
 import { NewPost, Post } from "@/types";
-import axios from "axios";
+import axios, { AxiosError, HttpStatusCode } from "axios";
 import { authService } from "./authService";
 
 const PAGE_SIZE = 5;
@@ -13,7 +13,7 @@ const authHeaders = async () => ({
 export const postService = {
     
     // All the services regarding posts
-    async readPosts(page: number, pageSize: number) {
+    async readPosts(page: number, pageSize: number): Promise<Object | HttpStatusCode> {
         try {            
             const response = await axios(
                 `${BASE_URL}/posts`
@@ -27,48 +27,57 @@ export const postService = {
                     descending: true,
                 },
             });
-            console.log(response);
             return response;
-        } catch (err) {
-            return undefined;
+            
+        } catch (err : AxiosError | any) {
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
           }
     },
     
-    async deletePost(id: string, page: number): Promise<Post[] | undefined> {
+    async deletePost(id: string, page: number) {
   
-        try {  
-            await axios.delete(`${BASE_URL}/posts/${id}`,
+        try {
+            const r: HttpStatusCode = await axios.delete(`${BASE_URL}/posts/${id}`,
                 { headers: {
                 ...await authHeaders(),
                 }
             });
-            const posts = await this.readPosts(page, PAGE_SIZE);
-      
-            return posts?.data.content;
-        } catch (err) {
-            console.log(err);
-            return;
+        
+            // return error code
+            return r;
+            
+        } catch (err : AxiosError | any) {;
+            switch (err) {
+                case null:
+                    return HttpStatusCode.InternalServerError;
+                default:
+                    return err.response?.status ?? HttpStatusCode.InternalServerError;
+            }
         }
     },
 
-    async savePost(id: string, post: NewPost, page: number): Promise<Post[] | undefined> {
+    async savePost(id: string, post: NewPost, page: number): Promise<Post | HttpStatusCode> {
         try {  
-        await axios.put(`${BASE_URL}/posts/${id}`,
-            post,
-            { headers: {
-                ...await authHeaders(),
+            const response = await axios.put(`${BASE_URL}/posts/${id}`,
+                post,
+                { headers: {
+                    ...await authHeaders(),
+                }
+                });
+        
+            if (response.status === HttpStatusCode.Created) {
+                console.log("Post updated successfully:", response.data);   
+                return response.data;
             }
-            });
-            const resp = await this.readPosts(page, PAGE_SIZE);
-            if (resp !== undefined) return resp.data.content;
-            return undefined;
-        }
-            catch (err) {
+            return response.status;
+            
+        } catch (err: AxiosError | any) {
             console.log(err);
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
         }
     },
     
-    async postNew(page: number, newPost: NewPost): Promise<Post[] | undefined> {
+    async postNew(page: number, newPost: NewPost): Promise<Post | HttpStatusCode> {
 
         try {
             const response = await axios.post(`${BASE_URL}/posts`,
@@ -79,12 +88,14 @@ export const postService = {
             });
             console.log(response);
             
-            const resp = await this.readPosts(page, PAGE_SIZE);
-            if (resp !== undefined) return resp.data.content;
-            return undefined;
+            if (response.status !== HttpStatusCode.Created) return response.status;
             
-        } catch (err) {
-            return undefined;
+            // Return the response (Post), if the request was successful
+            return response.data;
+            
+        } catch (err: AxiosError | any) {
+            console.log(err);
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
         }
     }
 }

@@ -1,13 +1,16 @@
 import { useState, useCallback } from "react";
 import { NewPost, Post } from "../types";
 import { postService } from "@/services/postService";
+import { HttpStatusCode } from "axios";
 
 interface Props {
   post: Post | null;
   page: number;
-  onSave: (posts: Post[]) => void;
+  onSave: (post: Post) => void;
   onCancel: () => void;
 }
+
+type DataOrError = { data: Post | HttpStatusCode };
 
 export default function PostEditor({ post, page, onSave, onCancel }: Props) {
   const [title, setTitle] = useState(post?.title ?? "");
@@ -26,22 +29,30 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
     return Object.keys(e).length === 0;
   }, [title, excerpt, body]);
   
-  const save = async (id: string, post: NewPost, page: number): Promise<Post[] | undefined> => {
-    if (!validate()) return;
-    
-      const response = await postService.savePost(id, post, page);
-      
-      if (response !== undefined) return response;
-      return undefined;
+  const save = async (id: string, post: NewPost, page: number): Promise<DataOrError> => {
+    if (!validate()) return { data: HttpStatusCode.BadRequest };
+
+    const response = await postService.savePost(id, post, page);
+
+    if (typeof(response) === "number") {
+      return { data: response };
+    }
+
+    return { data: response as Post };
   };
   
-  const postNew = async (newPost: NewPost, page: number): Promise<Post[] | undefined> => {
-    
-    if (!validate()) return undefined;
+  const postNew = async (newPost: NewPost, page: number): Promise<DataOrError> => {
+    if (!validate()) return { data: HttpStatusCode.BadRequest };
+
     const response = await postService.postNew(page, newPost);
-    if (response !== undefined) return response;
-    return undefined;
-  }
+    console.log(response);
+
+    if (typeof(response) === "number") {
+      return { data: response };
+    }
+
+    return { data: response as Post };
+  };
   
   const handleSubmit = useCallback(async(isEditing: boolean, page: number) => {
     if (!validate()) return;
@@ -50,23 +61,26 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
       .map((t) => t.trim())
       .filter(Boolean);
  
-    let newPost: NewPost = {
-      "title": title,
-      "excerpt": excerpt,
-      "body": body,
-      "tags": tags,
-      "coverImage": coverImage ?? ""
-    }
+    const newPost: NewPost = {
+      title,
+      excerpt,
+      body,
+      tags,
+      coverImage: coverImage ?? "",
+    };
     console.log(newPost);
-    
-    const posts: Post[] | undefined = isEditing ? await save(post!.id, newPost, page) : await postNew(newPost, page);
-    
-    if (posts !== undefined && isEditing === false) onSave(posts);
-    if (posts !== undefined && isEditing === true) onSave(posts);
-    
-    return;
-    
-  }, [validate, title, excerpt, body, tagsInput, coverImage, onSave]);
+
+    const result = isEditing ? await save(post!.id, newPost, page) : await postNew(newPost, page);
+
+    if (typeof(result.data) === "number") {
+      console.log("Error code:", result.data);
+      return result.data;
+    }
+
+    if (result.data && typeof result.data === "object") {
+      onSave(result.data as Post);
+    }
+  }, [validate, title, excerpt, body, tagsInput, coverImage, onSave, post]);
 
   const isEditing = post !== null;
 
