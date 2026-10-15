@@ -9,6 +9,8 @@ interface Props {
   onRead: (id: string) => void;
 }
 
+const emojiList = ["😄", "😇", "😍", "😎", "🥳", "😞", "😐"];
+
 export default function PostList({
   posts,
   page,
@@ -135,8 +137,27 @@ function PostRow({
               ))}
             </div>
           </div>
-        </div>
-        <span className="text-[var(--muted-foreground)] group-hover:text-[var(--accent)] transition-colors text-lg pt-1 shrink-0">
+          <div className="flex justify-items-centery gap-4">
+              {post.emojies.map((alpha, index) => {
+                const emoji = emojiList[index];
+                if (!emoji) return null;
+
+                const opacity = alpha >= 0.3 ? alpha : 0;
+
+                return (
+                  opacity > 0 &&
+                  <span
+                    key={emoji}
+                    style={{ opacity }}
+                    title={`${Math.round(opacity * 100)}%`}
+                  >
+                    {emoji}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+          <span className="text-[var(--muted-foreground)] group-hover:text-[var(--accent)] transition-colors text-lg pt-1 shrink-0">
           →
         </span>
       </button>
