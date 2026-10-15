@@ -12,6 +12,23 @@ const authHeaders = async () => ({
 
 export const postService = {
     
+    // reaction to post
+    async reactToPost(postId: string, reaction: string) {
+        
+        console.log(`Reacting to post ${postId} with reaction: ${reaction}`);
+
+        try {
+            const response = await axios.post(`${BASE_URL}/posts/${postId}/reactions`,
+               { emoji: reaction },
+            );
+            console.log("Ok");
+            
+            return response;
+        } catch (err: AxiosError | any) {
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
+        }
+    },
+    
     // All the services regarding posts
     async readPosts(page: number, pageSize: number): Promise<Object | HttpStatusCode> {
         try {            
