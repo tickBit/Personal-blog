@@ -8,6 +8,7 @@ export interface Post {
   createdAt: string;
   updatedAt: string;
   coverImage?: string;
+  emojies: number[];
 }
 export interface NewPost {
   title: string;
