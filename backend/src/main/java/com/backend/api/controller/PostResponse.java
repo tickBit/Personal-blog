@@ -12,5 +12,6 @@ public record PostResponse(
         List<String> tags,
         String coverImage,
         Date createdAt,
-        Date updatedAt) {
+        Date updatedAt,
+        float[] emojies) {
 }

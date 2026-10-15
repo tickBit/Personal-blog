@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 
+import com.backend.api.DTO.EmojiDto;
 import com.backend.api.entity.Post;
 import com.backend.api.service.PostService;
 
@@ -115,6 +116,16 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+    
+    @PostMapping("/{id}/reactions")
+    public ResponseEntity<Void> setEmoji(@PathVariable Long id, @RequestBody EmojiDto request) {
+                
+        String emoji = request.getEmoji();
+        
+        postService.setEmoji(id, emoji);
+        
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
     
     private boolean validate(PostRequest request) {

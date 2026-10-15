@@ -1,6 +1,5 @@
 package com.backend.api.service;
 
-import java.net.http.HttpResponse;
 import java.util.Date;
 import java.util.List;
 
@@ -13,8 +12,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.backend.api.controller.PageResponse;
 import com.backend.api.controller.PostResponse;
+import com.backend.api.entity.Emoji;
 import com.backend.api.entity.Post;
 import com.backend.api.repository.PostRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class PostService {
@@ -39,7 +41,8 @@ public class PostService {
                         post.getTags(),
                         post.getCoverImage(),
                         post.getCreatedAt(),
-                        post.getUpdatedAt()))
+                        post.getUpdatedAt(),
+                        post.getEmojiAlphas()))
                 .toList();
 
         return new PageResponse<PostResponse>(postResponses, postPage.getNumber(), postPage.getSize(), postPage.getTotalElements(), postPage.getTotalPages(), postPage.isLast(), postPage.isFirst());
@@ -58,7 +61,8 @@ public class PostService {
                 post.getTags(),
                 post.getCoverImage(),
                 post.getCreatedAt(),
-                post.getUpdatedAt());
+                post.getUpdatedAt(),
+                post.getEmojiAlphas());
     }
     
     public Post createPost(String title, String excerpt, String body, List<String> tags, String coverImage) {
@@ -96,10 +100,25 @@ public class PostService {
         post.setCoverImage(coverImage);
         post.setSlug(generateSlug(title));
         post.setUpdatedAt(new Date());
-
+        
         return postRepository.save(post);
     }
 
+    @Transactional
+    public void setEmoji(Long id, String reaction) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Post not found"));
+
+        Emoji postEmoji = post.getEmoji();
+        if (postEmoji == null) {
+            postEmoji = new Emoji();
+            post.setEmoji(postEmoji);
+        }
+
+        postEmoji.addReaction(reaction);
+    }
+    
     private String generateSlug(String title) {
         return title.trim().toLowerCase().replaceAll("\\s+", "-");
     }

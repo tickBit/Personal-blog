@@ -36,6 +36,27 @@ public class Post {
     @Column (nullable = true)
     private String coverImage;
     
+    // Each post has one emoji summary; the relationship is mapped by Emoji.post.
+    @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Emoji emoji;
+
+    public Emoji getEmoji() {
+        return emoji;
+    }
+    
+    public void setEmoji(Emoji emoji) {
+        this.emoji = emoji;
+        if (emoji != null && emoji.getPost() != this) {
+            emoji.setPost(this);
+        }
+    }
+    
+    public float[] getEmojiAlphas() {
+        if (emoji != null) return emoji.getEmojiAlphas();
+        float zeros[] = {0, 0, 0, 0, 0, 0, 0};
+        return zeros;
+    }
+    
     // Getters and Setters
     public Long getId() {
         return id;
