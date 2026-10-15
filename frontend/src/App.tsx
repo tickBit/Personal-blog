@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useContext } from "react";
+import { HttpStatusCode } from "axios";
+
 import { Post } from "./types";
 import PostList from "./components/PostList";
 import PostReader from "./components/PostReader";
@@ -7,7 +9,7 @@ import Login from "./components/Login";
 import { postService } from "./services/postService";
 import { authService } from "./services/authService";
 import Contact from "./components/Contact";
-import { HttpStatusCode } from "axios";
+import { useGuestAuth } from "./context/GuestContext";
 
 export const PAGE_SIZE = 5;
 
@@ -30,6 +32,8 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
   const [error, setError] = useState<boolean>(false);
+
+  const { hasVisited, guestId } = useGuestAuth();
   
   const navigate = useCallback((v: View) => {   
     console.log(v);
@@ -45,7 +49,7 @@ export default function App() {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
-
+  
   const login = async (username: string, password: string) => {
     await authService.login(username, password);
     setAuthenticated(true);
@@ -92,6 +96,7 @@ export default function App() {
       return;
     }
 
+    console.log("Response from readPosts:", response);
     if (response && typeof response === "object" && "data" in response) {
       const payload = response.data as { totalElements?: number; content?: Post[] };
       const content = Array.isArray(payload.content) ? payload.content : [];
@@ -202,6 +207,28 @@ export default function App() {
         )}
         {view.kind === "read" && currentPost && (
           <PostReader
+            onReaction={async (reaction: string) => {
+              if (!currentPost) return;
+              
+              try {
+                const response = await postService.reactToPost(currentPost.id, reaction);
+                
+                if (response.status === 200) {
+                  
+                  if (hasVisited) {
+                    if (localStorage.getItem("portfolio-blog-post-reacted")) localStorage.setItem("portfolio-blog-post-reacted", localStorage.getItem("portfolio-blog-post-reacted") + "-" + currentPost.id );
+                    else localStorage.setItem("portfolio-blog-post-reacted", currentPost.id );
+                  }
+                  return;
+                }
+                
+                setError(true);
+            } catch (err) {
+                console.error("Error reacting to post:", err);
+                setError(true);
+                }
+              }
+            }
             post={currentPost}
             onEdit={authenticated ? () => navigate({ kind: "edit", id: currentPost!.id.toString() }) : undefined}
             onDelete={authenticated ? () => handleDelete(currentPost!.id, page) : undefined}

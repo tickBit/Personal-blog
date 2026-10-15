@@ -1,10 +1,14 @@
+import { useEffect, useState } from "react";
 import { Post } from "../types";
+import { authService } from "@/services/authService";
+import Dialog from "./Dialog";
 interface Props {
   post: Post;
   onEdit?: () => void;
   onDelete?: () => void;
   deleteConfirm: boolean;
   onCancelDelete: () => void;
+  onReaction: (emoji: string) => void;
 }
 
 type Italics = {
@@ -19,7 +23,31 @@ export default function PostReader({
   onDelete,
   deleteConfirm,
   onCancelDelete,
+  onReaction,
 }: Props) {
+  
+  const emojiList = ["😄", "😇", "😍", "😎", "🥳", "😞", "😐"];
+  
+  const [authenticated, _] = useState(authService.isAuthenticated);
+  const [confirmReaction, setConfirmReaction] = useState<number | null>(null);
+  const [isReacted, setIsReacted] = useState<boolean>(false);
+  const [reacted, setReacted] = useState<boolean>(false);
+  
+  const reactions = localStorage.getItem("portfolio-blog-post-reacted")
+  const each = reactions?.split("-");
+  
+  each?.forEach((id) => {
+      if (post.id === id && reacted === false) {
+        setReacted(true);
+      }
+    });
+    
+  const sendEmoji = (emoji: string) => {
+    setConfirmReaction(null);
+    setIsReacted(true);
+    onReaction(emoji);
+  };
+  
   return (
     <article className="pt-10">
       {post.coverImage && (
@@ -126,6 +154,45 @@ export default function PostReader({
             </button>
           </div>
         )}
+      </div>}
+      {!authenticated && <div className="mt-16 pt-8 border-t border-[var(--border)]">
+        <p
+          className="text-[11px] tracking-[0.06em] text-[var(--muted-foreground)]"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          Your reaction to this post:
+        </p>
+        <p className="flex items-center gap-1">
+          {emojiList.map((emoji, index) => (
+            <span key={index} className="mr-1 text-[48px] cursor-pointer" onClick={() => setConfirmReaction(index) }>{emoji}</span>
+          ))}
+        </p>
+        { confirmReaction !== null && reacted && (<Dialog
+                    emoji={null}
+                    title="Info"
+                    message="You have already reacted to this post"
+                    onCancel={() => {}}
+                    onConfirm={() => {setConfirmReaction(null)}}
+                    />
+                  )
+                }
+        {confirmReaction !== null && reacted === false && (
+          <Dialog
+            emoji={emojiList[confirmReaction]}
+            title="Confirm action"
+            message="Are you sure you want react with the following emoji"
+            onCancel={() => setConfirmReaction(null)}
+            onConfirm={() => sendEmoji(emojiList[confirmReaction])}
+          />
+          )
+        }
+         {isReacted && (
+            <>
+            <p>Thank You!</p>
+            <p>You can see the overall reactions in the listing page.</p>
+            </>
+            )
+          }
       </div>}
     </article>
   );
