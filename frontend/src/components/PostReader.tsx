@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Post } from "../types";
 import { authService } from "@/services/authService";
 import Dialog from "./Dialog";
+import { useGuestAuth, STORAGE_KEY } from "@/context/GuestContext";
 interface Props {
   post: Post;
   onEdit?: () => void;
@@ -33,7 +34,18 @@ export default function PostReader({
   const [isReacted, setIsReacted] = useState<boolean>(false);
   const [lastIndex, setLastIndex] = useState<number | null>(null);
   
-  const reactions = localStorage.getItem("portfolio-blog-site-guest")
+  const { guestId, setGuestId,  } = useGuestAuth();
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY) === null) {
+      setGuestId(null);
+    }
+  }, [guestId, setGuestId]);
+
+  const reactions = guestId === null
+    ? null
+    : localStorage.getItem(STORAGE_KEY);
+
   const each = reactions?.split("-");
   
   each?.forEach((id, index) => {

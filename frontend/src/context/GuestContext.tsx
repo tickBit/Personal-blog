@@ -2,16 +2,18 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
+  type Dispatch,
+  type SetStateAction,
   type PropsWithChildren,
 } from "react";
 
 type GuestContextValue = {
   guestId: string | null;
+  setGuestId: Dispatch<SetStateAction<string | null>>;
 };
 
-const STORAGE_KEY = "portfolio-blog-site-guest";
+export const STORAGE_KEY = "portfolio-blog-site-guest";
 
 const GuestContext = createContext<GuestContextValue | undefined>(undefined);
 
@@ -27,13 +29,9 @@ export function useGuestAuth(): GuestContextValue {
 
 export function GuestProvider({ children }: PropsWithChildren) {
   const [guestId, setGuestId] = useState<string | null>(null);
-  const initialized = useRef(false);
 
   useEffect(() => {
-    // Prevents a second run in React Strict Mode in development mode
-    // from interpreting a newly created token as a previous visit.
-    if (initialized.current) return;
-    initialized.current = true;
+    if (guestId !== null) return;
 
     try {
       const existingGuestId = localStorage.getItem(STORAGE_KEY);
@@ -50,10 +48,10 @@ export function GuestProvider({ children }: PropsWithChildren) {
       // null means that the visitor status could not be verified
       setGuestId(null);
     }
-  }, []);
+  }, [guestId]);
 
   return (
-    <GuestContext.Provider value={{ guestId }}>
+    <GuestContext.Provider value={{ guestId, setGuestId }}>
       {children}
     </GuestContext.Provider>
   );
