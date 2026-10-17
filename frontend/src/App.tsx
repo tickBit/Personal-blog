@@ -9,7 +9,6 @@ import Login from "./components/Login";
 import { postService } from "./services/postService";
 import { authService } from "./services/authService";
 import Contact from "./components/Contact";
-import { useGuestAuth } from "./context/GuestContext";
 
 export const PAGE_SIZE = 5;
 
@@ -32,8 +31,7 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
   const [error, setError] = useState<boolean>(false);
-
-  const { hasVisited, guestId } = useGuestAuth();
+  const [isEmojiAdded, setIsEmojiAdded] =  useState<boolean>(false);
   
   const navigate = useCallback((v: View) => {   
     console.log(v);
@@ -180,7 +178,7 @@ export default function App() {
    
     readPosts(page); 
     
-  }, [page]);
+  }, [page, isEmojiAdded]);
   
   return (
     <div className="min-h-full bg-[var(--background)]">
@@ -208,24 +206,27 @@ export default function App() {
         {view.kind === "read" && currentPost && (
           <PostReader
             onReaction={async (reaction: string) => {
-              if (!currentPost) return;
+              if (!currentPost) return false;
+              
+              setIsEmojiAdded(false);
               
               try {
                 const response = await postService.reactToPost(currentPost.id, reaction);
                 
                 if (response.status === 200) {
                   
-                  if (hasVisited) {
-                    if (localStorage.getItem("portfolio-blog-post-reacted")) localStorage.setItem("portfolio-blog-post-reacted", localStorage.getItem("portfolio-blog-post-reacted") + "-" + currentPost.id );
-                    else localStorage.setItem("portfolio-blog-post-reacted", currentPost.id );
-                  }
-                  return;
+                  localStorage.setItem("portfolio-blog-site-guest", localStorage.getItem("portfolio-blog-site-guest") + "-" + currentPost.id);
+                  
+                  setIsEmojiAdded(true);
+                  return true;
                 }
                 
                 setError(true);
+                return false;
             } catch (err) {
                 console.error("Error reacting to post:", err);
                 setError(true);
+                return false;
                 }
               }
             }

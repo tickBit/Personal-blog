@@ -8,7 +8,7 @@ interface Props {
   onDelete?: () => void;
   deleteConfirm: boolean;
   onCancelDelete: () => void;
-  onReaction: (emoji: string) => void;
+  onReaction: (emoji: string) => Promise<boolean>;
 }
 
 type Italics = {
@@ -31,21 +31,27 @@ export default function PostReader({
   const [authenticated, _] = useState(authService.isAuthenticated);
   const [confirmReaction, setConfirmReaction] = useState<number | null>(null);
   const [isReacted, setIsReacted] = useState<boolean>(false);
-  const [reacted, setReacted] = useState<boolean>(false);
+  const [lastIndex, setLastIndex] = useState<number | null>(null);
   
-  const reactions = localStorage.getItem("portfolio-blog-post-reacted")
+  const reactions = localStorage.getItem("portfolio-blog-site-guest")
   const each = reactions?.split("-");
   
-  each?.forEach((id) => {
-      if (post.id === id && reacted === false) {
-        setReacted(true);
+  each?.forEach((id, index) => {
+      if (post.id === id && isReacted === false && index >= 5) {
+        setIsReacted(true);
       }
     });
     
-  const sendEmoji = (emoji: string) => {
+  const sendEmoji = async(emoji: string) => {
     setConfirmReaction(null);
-    setIsReacted(true);
-    onReaction(emoji);
+    const resp = await onReaction(emoji);
+    if (resp === true) {
+      setIsReacted(true);
+      setLastIndex(emojiList.indexOf(emoji));
+    } else {
+      console.log("Virhe")
+    }
+    
   };
   
   return (
@@ -155,7 +161,9 @@ export default function PostReader({
           </div>
         )}
       </div>}
-      {!authenticated && <div className="mt-16 pt-8 border-t border-[var(--border)]">
+      {!authenticated && isReacted === false ?
+       <>
+       <div className="mt-16 pt-8 border-t border-[var(--border)]">
         <p
           className="text-[11px] tracking-[0.06em] text-[var(--muted-foreground)]"
           style={{ fontFamily: "var(--font-mono)" }}
@@ -167,33 +175,60 @@ export default function PostReader({
             <span key={index} className="mr-1 text-[48px] cursor-pointer" onClick={() => setConfirmReaction(index) }>{emoji}</span>
           ))}
         </p>
-        { confirmReaction !== null && reacted && (<Dialog
+        { confirmReaction !== null && isReacted && (<Dialog
                     emoji={null}
                     title="Info"
-                    message="You have already reacted to this post"
+                    message="Coulnd't set reaction (already reacted?)"
                     onCancel={() => {}}
                     onConfirm={() => {setConfirmReaction(null)}}
                     />
                   )
                 }
-        {confirmReaction !== null && reacted === false && (
+        {confirmReaction !== null && isReacted === false && (
           <Dialog
             emoji={emojiList[confirmReaction]}
             title="Confirm action"
             message="Are you sure you want react with the following emoji"
             onCancel={() => setConfirmReaction(null)}
-            onConfirm={() => sendEmoji(emojiList[confirmReaction])}
+            onConfirm={async() => await sendEmoji(emojiList[confirmReaction]) }
           />
-          )
-        }
-         {isReacted && (
-            <>
-            <p>Thank You!</p>
-            <p>You can see the overall reactions in the listing page.</p>
-            </>
-            )
-          }
-      </div>}
+        )}
+        </div>
+        </>
+      : <>
+        <div>
+          <div
+            className="text-[11px] tracking-[0.06em] text-[var(--muted-foreground)]"
+            style={{ fontFamily: "var(--font-mono)" }}
+        >
+            Overall reactions:
+          </div>
+          <div className="flex justify-items-centery gap-3"
+            style={{ fontFamily: "var(--font-mono)" }}>
+              {post.emojies.map((alpha, index) => {
+                const emoji = emojiList[index];
+                if (!emoji && lastIndex === null) return null;
+
+                const opacity = alpha >= 0.3 ? alpha : 0;
+                
+                return (
+                  opacity > 0 &&
+                  <span
+                    key={emoji}
+                    style={{ opacity }}
+                    title={`${Math.round(opacity * 100)}%`}
+                  >
+                    {emoji}
+                  </span>
+                );
+              })}
+              {lastIndex !== null && isReacted && (
+                <p>{emojiList[lastIndex]}</p>
+              )}
+          </div>
+          </div>
+        </>
+      }
     </article>
   );
 }

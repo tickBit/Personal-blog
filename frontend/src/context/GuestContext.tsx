@@ -8,7 +8,6 @@ import {
 } from "react";
 
 type GuestContextValue = {
-  hasVisited: boolean | null;
   guestId: string | null;
 };
 
@@ -27,7 +26,6 @@ export function useGuestAuth(): GuestContextValue {
 }
 
 export function GuestProvider({ children }: PropsWithChildren) {
-  const [hasVisited, setHasVisited] = useState<boolean | null>(null);
   const [guestId, setGuestId] = useState<string | null>(null);
   const initialized = useRef(false);
 
@@ -42,14 +40,12 @@ export function GuestProvider({ children }: PropsWithChildren) {
 
       if (existingGuestId) {
         setGuestId(existingGuestId);
-        setHasVisited(true);
         return;
+      } else {
+        const newGuestId = crypto.randomUUID();
+        localStorage.setItem(STORAGE_KEY, newGuestId);
+        setGuestId(newGuestId);
       }
-
-      const newGuestId = crypto.randomUUID();
-      localStorage.setItem(STORAGE_KEY, newGuestId);
-      setGuestId(newGuestId);
-      setHasVisited(false);
     } catch {
       // null means that the visitor status could not be verified
       setGuestId(null);
@@ -57,7 +53,7 @@ export function GuestProvider({ children }: PropsWithChildren) {
   }, []);
 
   return (
-    <GuestContext.Provider value={{ hasVisited, guestId }}>
+    <GuestContext.Provider value={{ guestId }}>
       {children}
     </GuestContext.Provider>
   );
