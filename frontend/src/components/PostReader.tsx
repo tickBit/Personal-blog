@@ -35,9 +35,27 @@ export default function PostReader({
   const [isReacted, setIsReacted] = useState<boolean>(false);
   const [lastIndex, setLastIndex] = useState<number | null>(null);
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+  const [isAllZeros, setIsAllZeros] = useState<boolean>(true);
   
   const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
 
+  const isReactions = () => {
+    
+    if (!post) setIsAllZeros(false);
+    
+    let allZeros = true;
+    for (const e of post.emojies) {
+      if (e > 0) allZeros = false;
+    }
+    setIsAllZeros(allZeros);
+  }
+  
+  useEffect(() => {
+    
+    isReactions();
+    
+  }, []);
+  
   // this sets the storage key value, if it's null
   useEffect(() => {
     if (localStorage.getItem(STORAGE_KEY) === null && !isAnswered) {
@@ -244,7 +262,9 @@ export default function PostReader({
           </div>
           <div className="flex justify-items-centery gap-3"
             style={{ fontFamily: "var(--font-mono)" }}>
-              {post.emojies.map((alpha, index) => {
+              {isAllZeros && (<span>No reactions yet.</span>)}
+              
+              {post && post.emojies.map((alpha, index) => {
                 const emoji = emojiList[index];
                 if (!emoji && lastIndex === null) return null;
 
