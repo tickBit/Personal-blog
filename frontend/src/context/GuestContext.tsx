@@ -11,6 +11,10 @@ import {
 type GuestContextValue = {
   guestId: string | null;
   setGuestId: Dispatch<SetStateAction<string | null>>;
+  hasAgreed: boolean;
+  setHasAgreed: Dispatch<SetStateAction<boolean>>;
+  isAnswered: boolean;
+  setIsAnswered: Dispatch<SetStateAction<boolean>>;
 };
 
 export const STORAGE_KEY = "portfolio-blog-site-guest";
@@ -29,9 +33,11 @@ export function useGuestAuth(): GuestContextValue {
 
 export function GuestProvider({ children }: PropsWithChildren) {
   const [guestId, setGuestId] = useState<string | null>(null);
-
+  const [hasAgreed, setHasAgreed] = useState<boolean>(false);
+  const [isAnswered, setIsAnswered] = useState<boolean>(false);
+  
   useEffect(() => {
-    if (guestId !== null) return;
+    if (guestId !== null || hasAgreed === false) return;
 
     try {
       const existingGuestId = localStorage.getItem(STORAGE_KEY);
@@ -48,10 +54,10 @@ export function GuestProvider({ children }: PropsWithChildren) {
       // null means that the visitor status could not be verified
       setGuestId(null);
     }
-  }, [guestId]);
+  }, [guestId, hasAgreed]);
 
   return (
-    <GuestContext.Provider value={{ guestId, setGuestId }}>
+    <GuestContext.Provider value={{ guestId, setGuestId, hasAgreed, setHasAgreed, setIsAnswered, isAnswered }}>
       {children}
     </GuestContext.Provider>
   );

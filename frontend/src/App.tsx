@@ -9,6 +9,8 @@ import Login from "./components/Login";
 import { postService } from "./services/postService";
 import { authService } from "./services/authService";
 import Contact from "./components/Contact";
+import Banner from "./components/Banner";
+import { STORAGE_KEY, useGuestAuth } from "./context/GuestContext";
 
 export const PAGE_SIZE = 5;
 
@@ -31,7 +33,9 @@ export default function App() {
   const [page, setPage] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
   const [error, setError] = useState<boolean>(false);
-  const [isEmojiAdded, setIsEmojiAdded] =  useState<boolean>(false);
+  const [isEmojiAdded, setIsEmojiAdded] = useState<boolean>(false);
+  
+  const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
   
   const navigate = useCallback((v: View) => {   
     console.log(v);
@@ -42,6 +46,18 @@ export default function App() {
     window.scrollTo(0, 0);
   }, []);
 
+  // if the user clears local storage, ask consent again
+  useEffect(() => {
+    
+    if (guestId === null) setHasAgreed(false);
+    
+    if (localStorage.getItem(STORAGE_KEY) === null) {
+      setGuestId(null);
+      setHasAgreed(false);
+    }
+    
+  }, [hasAgreed, guestId]);
+  
   useEffect(() => {
     const onPopState = () => setView(initialView());
     window.addEventListener("popstate", onPopState);
@@ -193,6 +209,17 @@ export default function App() {
       />
 
       <main className="max-w-3xl mx-auto px-6 pb-24">
+        
+        {!isAnswered && (
+          <Banner text_en={"Do you accept a random token into your browser's local storage? If you don't, you can't react to posts."}
+                  text_fi={"Hyväksytkö satunnaisen tunnisteen selaimesi paikalliseen tallennustilaan? Jollet, et pysty reagoimaan postauksiin. (fi)"}
+                  btn_no={"No / Ei"}
+                  btn_yes={"Yes / Kyllä"}
+                  onCancel={() => { setIsAnswered(true); setHasAgreed(false); }}
+                  onConfirm={() => { setIsAnswered(true); setHasAgreed(true); }}
+          />
+        )}
+        
         {view.kind === "login" && <Login onLogin={login} onCancel={() => navigate({ kind: "list" })} />}
         {view.kind === "list" && (
           <PostList

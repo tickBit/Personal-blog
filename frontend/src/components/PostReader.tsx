@@ -3,6 +3,7 @@ import { Post } from "../types";
 import { authService } from "@/services/authService";
 import Dialog from "./Dialog";
 import { useGuestAuth, STORAGE_KEY } from "@/context/GuestContext";
+import Banner from "./Banner";
 interface Props {
   post: Post;
   onEdit?: () => void;
@@ -33,12 +34,15 @@ export default function PostReader({
   const [confirmReaction, setConfirmReaction] = useState<number | null>(null);
   const [isReacted, setIsReacted] = useState<boolean>(false);
   const [lastIndex, setLastIndex] = useState<number | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   
-  const { guestId, setGuestId,  } = useGuestAuth();
+  const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY) === null) {
+    if (localStorage.getItem(STORAGE_KEY) === null && !isAnswered) {
       setGuestId(null);
+      setHasAgreed(false);
+      setIsAnswered(false);
     }
   }, [guestId, setGuestId]);
 
@@ -52,7 +56,9 @@ export default function PostReader({
       if (post.id === id && isReacted === false && index >= 5) {
         setIsReacted(true);
       }
-    });
+    });  
+
+  
     
   const sendEmoji = async(emoji: string) => {
     setConfirmReaction(null);
@@ -184,10 +190,30 @@ export default function PostReader({
         </p>
         <p className="flex items-center gap-1">
           {emojiList.map((emoji, index) => (
-            <span key={index} className="mr-1 text-[48px] cursor-pointer" onClick={() => setConfirmReaction(index) }>{emoji}</span>
+            <span key={index} className="mr-1 text-[48px] cursor-pointer" onClick={() => { setConfirmReaction(index); } }>{emoji}</span>
           ))}
         </p>
-        { confirmReaction !== null && isReacted && (<Dialog
+        
+        { confirmReaction !== null && !showConfirmation && (!hasAgreed || localStorage.getItem(STORAGE_KEY) === null) && (
+          <Banner text_en={"You must first give a concent to save a random token into your browser's local storage."}
+                  text_fi={"Sinun on ensin hyväksyttävä satunnaisen tunnisteen lisääminen selaimen tallennustilaan. (fi)"}  
+                  btn_no={"I don't concent / En hyväksy"}
+                  btn_yes={"Concent / Hyväksyn"}
+                  
+                  onCancel = {() => { setConfirmReaction(null); setIsAnswered(true); }}
+                  onConfirm = {() => { setHasAgreed(true); setIsAnswered(true); setGuestId(null); setShowConfirmation(true); }}      
+          />
+        )}
+        { showConfirmation && <Dialog
+            emoji={emojiList[confirmReaction!]}
+            title="Confirm action"
+            message="Are you sure you want react with the following emoji"
+            onCancel={() => { setConfirmReaction(null); setShowConfirmation(false); }}
+            onConfirm={async() => { await sendEmoji(emojiList[confirmReaction!]); setShowConfirmation(false); }}
+          />
+        }
+        
+        { confirmReaction !== null && isReacted && hasAgreed && (<Dialog
                     emoji={null}
                     title="Info"
                     message="Coulnd't set reaction (already reacted?)"
@@ -196,7 +222,7 @@ export default function PostReader({
                     />
                   )
                 }
-        {confirmReaction !== null && isReacted === false && (
+        {confirmReaction !== null && isReacted === false && hasAgreed && localStorage.getItem(STORAGE_KEY) !== null && (
           <Dialog
             emoji={emojiList[confirmReaction]}
             title="Confirm action"
