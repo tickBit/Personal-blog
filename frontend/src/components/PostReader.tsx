@@ -38,6 +38,7 @@ export default function PostReader({
   
   const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
 
+  // this sets the storage key value, if it's null
   useEffect(() => {
     if (localStorage.getItem(STORAGE_KEY) === null && !isAnswered) {
       setGuestId(null);
