@@ -208,7 +208,7 @@ export default function App() {
 
       <main className="max-w-3xl mx-auto px-6 pb-24">
         
-        {!isAnswered && (
+        {view.kind !== "login" && !isAnswered && (
           <Banner text_en={"Do you accept a random token into your browser's local storage? If you don't, you can't react to posts."}
                   text_fi={"Hyväksytkö satunnaisen tunnisteen selaimesi paikalliseen tallennustilaan? Jollet, et pysty reagoimaan postauksiin. (fi)"}
                   btn_no={"No / Ei"}
