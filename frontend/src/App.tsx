@@ -118,8 +118,6 @@ export default function App() {
       setError(false);
       setTotalPosts(payload.totalElements ?? 0);
       setPosts(content);
-      
-      navigate({kind: "list"});
       return;
     }
 
