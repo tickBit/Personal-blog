@@ -262,7 +262,7 @@ export default function PostReader({
           </div>
           <div className="flex justify-items-centery gap-3"
             style={{ fontFamily: "var(--font-mono)" }}>
-              {isAllZeros && (<span>No reactions yet.</span>)}
+              {isAllZeros && lastIndex == null && (<span>No reactions yet.</span>)}
               
               {post && post.emojies.map((alpha, index) => {
                 const emoji = emojiList[index];
@@ -281,9 +281,7 @@ export default function PostReader({
                   </span>
                 );
               })}
-              {lastIndex !== null && isReacted && (
-                <p>{emojiList[lastIndex]}</p>
-              )}
+              
           </div>
           </div>
         </>
