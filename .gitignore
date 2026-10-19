@@ -18,6 +18,8 @@ hs_err_pid*
 **/failsafe-reports/
 **/screenshots/
 **/traces/
+**/playwright-report/
+**/test-results/
 
 # Local environment and secret configuration
 .env
