@@ -1,4 +1,4 @@
-FROM eclipse-temurin:26-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 
 WORKDIR /workspace
 
@@ -11,7 +11,7 @@ COPY src/ src/
 
 RUN ./mvnw -B -ntp package
 
-FROM eclipse-temurin:26-jre
+FROM eclipse-temurin:25-jre
 
 WORKDIR /app
 
