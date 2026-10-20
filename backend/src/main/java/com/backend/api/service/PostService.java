@@ -15,6 +15,7 @@ import com.backend.api.controller.PostResponse;
 import com.backend.api.entity.Emoji;
 import com.backend.api.entity.Post;
 import com.backend.api.repository.PostRepository;
+import com.backend.api.repository.EmojiRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -24,9 +25,12 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
+    private final EmojiRepository emojiRepository;
+
     // constructor injection    
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, EmojiRepository emojiRepository) {
         this.postRepository = postRepository;
+        this.emojiRepository = emojiRepository;
     }
     
     public PageResponse<PostResponse> getPosts(Pageable pageable) {
@@ -106,17 +110,28 @@ public class PostService {
 
     @Transactional
     public void setEmoji(Long id, String reaction) {
-        Post post = postRepository.findById(id)
+        int reactionIndex = Emoji.reactionIndex(reaction);
+
+        // The common path is a single atomic UPDATE. Java never reads the
+        // old counter value, so concurrent requests cannot overwrite it.
+        if (emojiRepository.incrementReaction(id, reactionIndex) == 1) {
+            return;
+        }
+
+        // Legacy posts may not have an emoji row. Lock the parent while the
+        // row is created so two simultaneous first reactions cannot race.
+        Post post = postRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Post not found"));
 
-        Emoji postEmoji = post.getEmoji();
-        if (postEmoji == null) {
-            postEmoji = new Emoji();
-            post.setEmoji(postEmoji);
+        if (post.getEmoji() == null) {
+            post.setEmoji(new Emoji());
+            postRepository.saveAndFlush(post);
         }
 
-        postEmoji.addReaction(reaction);
+        if (emojiRepository.incrementReaction(id, reactionIndex) != 1) {
+            throw new IllegalStateException("Could not update reaction counter");
+        }
     }
     
     private String generateSlug(String title) {
