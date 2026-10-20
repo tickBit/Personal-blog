@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import com.backend.api.entity.Post;
 import com.backend.api.repository.PostRepository;
@@ -34,6 +35,9 @@ class ApiApplicationTests {
 
 	@Autowired
 	private PostRepository postRepository;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@BeforeEach
 	void clearPosts() {
@@ -139,6 +143,24 @@ class ApiApplicationTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.slug").value("first-post"))
 				.andExpect(jsonPath("$.title").value("first-post"));
+	}
+
+	@Test
+	void reactionsAreIncrementedInTheDatabase() throws Exception {
+		Post savedPost = postRepository.save(postEntity("reaction-post", 1_000L));
+
+		for (int i = 0; i < 2; i++) {
+			mockMvc.perform(post("/api/posts/{id}/reactions", savedPost.getId())
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("{\"emoji\":\"😄\"}"))
+					.andExpect(status().isOk());
+		}
+
+		Integer count = jdbcTemplate.queryForObject(
+				"SELECT grinning_face FROM emoji WHERE post_id = ?",
+				Integer.class,
+				savedPost.getId());
+		org.assertj.core.api.Assertions.assertThat(count).isEqualTo(2);
 	}
 
 	@Test
