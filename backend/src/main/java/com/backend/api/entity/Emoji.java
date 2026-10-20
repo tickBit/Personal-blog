@@ -19,6 +19,14 @@ public class Emoji {
     private static final List<String> EMOJI_LIST =
         List.of("😄", "😇", "😍", "😎", "🥳", "😞", "😐");
     
+    public static int reactionIndex(String reaction) {
+        int index = EMOJI_LIST.indexOf(reaction);
+        if (index < 0) {
+            throw new IllegalArgumentException("Invalid emoji name: " + reaction);
+        }
+        return index;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -67,8 +75,7 @@ public class Emoji {
     
     public void addReaction(String name) {
         
-        System.out.println("Index" + EMOJI_LIST.lastIndexOf(name));
-        switch (EMOJI_LIST.indexOf(name)) {
+        switch (reactionIndex(name)) {
             case 0:
                 this.grinning_face += 1;
                 break;
