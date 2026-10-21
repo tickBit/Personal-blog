@@ -4,6 +4,7 @@ export function Header({
   error,
   onContact,
   showNew,
+  errorMessage,
   authenticated,
   onLogout,
 }: {
@@ -12,6 +13,7 @@ export function Header({
   error: boolean;
   onContact: () => void;
   showNew: boolean;
+  errorMessage: string;
   authenticated: boolean;
   onLogout: () => void;
 }) {
@@ -35,23 +37,11 @@ export function Header({
             A Portfolio Project
           </span>
         </button>
-        {!authenticated ? (
-        <div className="flex items-right gap-4">
-          <button onClick={ onContact }
-            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] transition-colors cursor-pointer border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-          <span>
-            Contact
-          </span>
-          </button>
-        </div>
-        ) : (<>
-          {error === true ? (
+        {error === true ? (
            <div className="flex flex bg-red-100 items-right gap-4 text-[var(--muted-foreground)] transition-colors border-[var(--border)] px-3 py-1.5">
             Status:
             <div>
-              Error.
+              {errorMessage}
             </div>
            </div>
                     )
@@ -63,8 +53,6 @@ export function Header({
             </div>
           </div> 
         )}
-          </>)
-        }
          
         {authenticated && (
           <div className="flex items-center gap-4">
@@ -82,6 +70,18 @@ export function Header({
               Sign out
             </button>
           </div>
+        )}
+        {!authenticated && (
+        <div className="flex items-right gap-4">
+          <button onClick={ onContact }
+            className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] transition-colors cursor-pointer border border-[var(--border)] hover:border-[var(--accent)] px-3 py-1.5"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+          <span>
+            Contact
+          </span>
+          </button>
+        </div>
         )}
       </div>
     </header>
