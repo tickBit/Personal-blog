@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { AxiosError, HttpStatusCode } from "axios";
+import { HttpStatusCode } from "axios";
 
 import { Post } from "./types";
 import PostList from "./components/PostList";
@@ -7,7 +7,7 @@ import PostReader from "./components/PostReader";
 import PostEditor from "./components/PostEditor";
 import Login from "./components/Login";
 import { postService } from "./services/postService";
-import { authService } from "./services/authService";
+import { AUTH_CONNECTION_ERROR, authService } from "./services/authService";
 import Contact from "./components/Contact";
 import Banner from "./components/Banner";
 import { STORAGE_KEY, useGuestAuth } from "./context/GuestContext";
@@ -64,9 +64,28 @@ export default function App() {
   }, []);
   
   const login = async (username: string, password: string) => {
-    await authService.login(username, password);
-    setAuthenticated(true);
-    navigate({ kind: "list" });
+    const status = await authService.login(username, password);
+
+    if (status >= 200 && status < 300) {
+      setAuthenticated(true);
+      setError(false);
+      setErrorMessage("");
+      navigate({ kind: "list" });
+      return;
+    }
+
+    setAuthenticated(false);
+    setError(true);
+
+    if (status === HttpStatusCode.Unauthorized || status === HttpStatusCode.Forbidden) {
+      setErrorMessage("Invalid username or password.");
+    } else if (status === AUTH_CONNECTION_ERROR) {
+      setErrorMessage("Could not connect to the server.");
+    } else if (status >= 500) {
+      setErrorMessage("Login service is temporarily unavailable.");
+    } else {
+      setErrorMessage("Login failed. Please try again.");
+    }
   };
 
   const logout = () => {
@@ -105,11 +124,11 @@ export default function App() {
 
     if (typeof response === "number") {
       setError(true);
+      setErrorMessage("Could not fetch the posts.");
       setPosts([]);
       return;
     }
 
-    console.log("Response from readPosts:", response);
     if (response && typeof response === "object" && "data" in response) {
       const payload = response.data as { totalElements?: number; content?: Post[] };
       const content = Array.isArray(payload.content) ? payload.content : [];
@@ -148,6 +167,7 @@ export default function App() {
           return;
         } else {
           setError(true);
+          setErrorMessage("Could not create the post.");
           navigate({ kind: "list" });
           return;
         }
@@ -161,7 +181,10 @@ export default function App() {
       if (deleteConfirm === id) {
         
         try {
-          if (await deletePost(id, page) > 0) setError(true); else {        
+          if (await deletePost(id, page) > 0) {
+            setError(true);
+            setErrorMessage("Could not delete the post.")
+          } else {        
             setError(false);
             navigate({ kind: "list" });
           }
@@ -169,6 +192,7 @@ export default function App() {
         } catch (err) {
           // unknown error
           setError(true);
+          setErrorMessage("Could not delete the post.")
         }
         
       } else {
