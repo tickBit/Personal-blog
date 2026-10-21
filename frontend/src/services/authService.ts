@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { HttpStatusCode } from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const ACCESS_TOKEN_KEY = "blog_folio_access_token";
@@ -9,16 +9,32 @@ type LoginResponse = {
   refreshToken: string;
 };
 
+export const AUTH_CONNECTION_ERROR = 0;
+
 let refreshPromise: Promise<string | null> | null = null;
 
 export const authService = {
-  async login(username: string, password: string) {
-    const { data } = await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
-      username,
-      password,
-    });
-    localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+  async login(username: string, password: string): Promise<number> {
+    try {
+      const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
+        username,
+        password,
+      });
+
+      if (!response.data?.accessToken || !response.data?.refreshToken) {
+        return HttpStatusCode.InternalServerError;
+      }
+
+      localStorage.setItem(ACCESS_TOKEN_KEY, response.data.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.data.refreshToken);
+      return response.status;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        return error.response?.status ?? AUTH_CONNECTION_ERROR;
+      }
+
+      return HttpStatusCode.InternalServerError;
+    }
   },
 
   logout() {
