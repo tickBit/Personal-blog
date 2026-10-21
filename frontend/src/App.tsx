@@ -50,15 +50,12 @@ export default function App() {
 
   // if the user clears local storage, ask consent again
   useEffect(() => {
-    
-    if (guestId === null) setHasAgreed(false);
-    
+
     if (localStorage.getItem(STORAGE_KEY) === null) {
       setGuestId(null);
-      setHasAgreed(false);
     }
-    
-  }, [hasAgreed, guestId]);
+
+  }, [guestId]);
   
   useEffect(() => {
     const onPopState = () => setView(initialView());
@@ -213,7 +210,7 @@ export default function App() {
 
       <main className="max-w-3xl mx-auto px-6 pt-32 pb-24">
         
-        {view.kind !== "login" && !isAnswered && (
+        {view.kind !== "login" && !isAnswered && !hasAgreed && (
           <Banner text_en={"Do you accept a random token into your browser's local storage? If you don't, you can't react to posts."}
                   text_fi={"Hyväksytkö satunnaisen tunnisteen selaimesi paikalliseen tallennustilaan? Jollet, et pysty reagoimaan postauksiin. (fi)"}
                   btn_no={"No / Ei"}

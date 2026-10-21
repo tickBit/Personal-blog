@@ -37,7 +37,12 @@ export function GuestProvider({ children }: PropsWithChildren) {
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   
   useEffect(() => {
-    if (guestId !== null || hasAgreed === false) return;
+    console.log("effect")
+    if (guestId !== null) {
+        setHasAgreed(true);
+        setIsAnswered(true);
+        return;
+    } 
 
     try {
       const existingGuestId = localStorage.getItem(STORAGE_KEY);
@@ -46,15 +51,18 @@ export function GuestProvider({ children }: PropsWithChildren) {
         setGuestId(existingGuestId);
         return;
       } else {
-        const newGuestId = crypto.randomUUID();
-        localStorage.setItem(STORAGE_KEY, newGuestId);
-        setGuestId(newGuestId);
+        
+        if (isAnswered && hasAgreed) {
+          const newGuestId = crypto.randomUUID();
+          localStorage.setItem(STORAGE_KEY, newGuestId);
+          setGuestId(newGuestId);
+        }
       }
     } catch {
       // null means that the visitor status could not be verified
       setGuestId(null);
     }
-  }, [guestId, hasAgreed]);
+  }, [guestId, hasAgreed, isAnswered]);
 
   return (
     <GuestContext.Provider value={{ guestId, setGuestId, hasAgreed, setHasAgreed, setIsAnswered, isAnswered }}>
