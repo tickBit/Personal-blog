@@ -3,7 +3,7 @@ import axios, { AxiosError, HttpStatusCode } from "axios";
 import { authService } from "./authService";
 
 const PAGE_SIZE = 5;
-const BASE_URL = `${import.meta.env.VITE_API_URL ?? "http://localhost:8080"}/api`;
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const authHeaders = async () => ({
     Authorization: `Bearer ${await authService.getAccessToken()}`,
@@ -13,17 +13,14 @@ const authHeaders = async () => ({
 export const postService = {
     
     // reaction to post
-    async reactToPost(postId: string, reaction: string) {
-        
-        console.log(`Reacting to post ${postId} with reaction: ${reaction}`);
-
+    async reactToPost(postId: string, reaction: string): Promise<number> {
         try {
-            const response = await axios.post(`${BASE_URL}/posts/${postId}/reactions`,
-               { emoji: reaction },
+            const response = await axios.post(
+                `${BASE_URL}/posts/${postId}/reactions`,
+                { emoji: reaction },
             );
-            console.log("Ok");
-            
-            return response;
+
+            return response.status;
         } catch (err: AxiosError | any) {
             return err.response?.status ?? HttpStatusCode.InternalServerError;
         }
