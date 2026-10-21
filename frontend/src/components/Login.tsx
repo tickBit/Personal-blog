@@ -8,17 +8,14 @@ type LoginProps = {
 export default function Login({ onLogin, onCancel }: LoginProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async (event: SubmitEvent) => {
     event.preventDefault();
-    setError("");
     setSubmitting(true);
+    
     try {
       await onLogin(username, password);
-    } catch {
-      setError("Invalid username or password.");
     } finally {
       setSubmitting(false);
     }
@@ -50,7 +47,6 @@ export default function Login({ onLogin, onCancel }: LoginProps) {
             required
           />
         </label>
-        {error && <p className="text-sm text-[var(--accent)]" role="alert">{error}</p>}
         <div className="flex gap-3">
           <button
             type="submit"
