@@ -1,4 +1,4 @@
-import axios, { AxiosError, HttpStatusCode } from "axios";
+import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AUTH_CONNECTION_ERROR, authService } from "./authService";
 
@@ -27,7 +27,7 @@ describe("authService.login", () => {
         status: HttpStatusCode.Unauthorized,
         statusText: "Unauthorized",
         headers: {},
-        config: { headers: {} },
+        config: { headers: new AxiosHeaders() },
         data: {},
       }),
     );
