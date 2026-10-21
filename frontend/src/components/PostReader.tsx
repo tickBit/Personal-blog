@@ -10,7 +10,7 @@ interface Props {
   onDelete?: () => void;
   deleteConfirm: boolean;
   onCancelDelete: () => void;
-  onReaction: (emoji: string) => Promise<boolean>;
+  onReaction: (emoji: string) => Promise<number>;
 }
 
 type Italics = {
@@ -82,7 +82,7 @@ export default function PostReader({
   const sendEmoji = async(emoji: string) => {
     setConfirmReaction(null);
     const resp = await onReaction(emoji);
-    if (resp === true) {
+    if (resp >= 200 && resp <= 299) {
       setIsReacted(true);
       setLastIndex(emojiList.indexOf(emoji));
     } else {

@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useContext } from "react";
-import { HttpStatusCode } from "axios";
+import { useState, useCallback, useEffect } from "react";
+import { AxiosError, HttpStatusCode } from "axios";
 
 import { Post } from "./types";
 import PostList from "./components/PostList";
@@ -35,6 +35,7 @@ export default function App() {
   const [totalPosts, setTotalPosts] = useState(0);
   const [error, setError] = useState<boolean>(false);
   const [isEmojiAdded, setIsEmojiAdded] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
   
   const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
   
@@ -205,6 +206,7 @@ export default function App() {
         onNew={() => navigate({ kind: "create" })}
         showNew={view.kind !== "create" && view.kind !== "edit"}
         authenticated={authenticated}
+        errorMessage={errorMessage}
         onLogout={logout}
       />
     <div className="min-h-screen bg-[var(--background)]">
@@ -234,30 +236,37 @@ export default function App() {
         {view.kind === "read" && currentPost && (
           <PostReader
             onReaction={async (reaction: string) => {
-              if (!currentPost) return false;
+              if (!currentPost) return -1;
               
               setIsEmojiAdded(false);
               
-              try {
-                const response = await postService.reactToPost(currentPost.id, reaction);
-                
-                if (response.status === 200) {
-                  
-                  localStorage.setItem("portfolio-blog-site-guest", localStorage.getItem("portfolio-blog-site-guest") + "-" + currentPost.id);
-                  
+              const status = await postService.reactToPost(
+                  currentPost.id,
+                  reaction,
+              );
+
+              if (status === HttpStatusCode.Ok) {
+                  localStorage.setItem(
+                      "portfolio-blog-site-guest",
+                      localStorage.getItem("portfolio-blog-site-guest")
+                          + "-"
+                          + currentPost.id,
+                  );
+
                   setIsEmojiAdded(true);
-                  return true;
-                }
-                
-                setError(true);
-                return false;
-            } catch (err) {
-                console.error("Error reacting to post:", err);
-                setError(true);
-                return false;
-                }
+                  return status;
               }
-            }
+
+              if (status === HttpStatusCode.TooManyRequests) {
+                  setErrorMessage("Too many requests. Please try again later.");
+              } else {
+                  setErrorMessage("Reaction could not be saved.");
+              }
+
+              setError(true);
+              return status;
+              
+            }}
             post={currentPost}
             onEdit={authenticated ? () => navigate({ kind: "edit", id: currentPost!.id.toString() }) : undefined}
             onDelete={authenticated ? () => handleDelete(currentPost!.id, page) : undefined}
