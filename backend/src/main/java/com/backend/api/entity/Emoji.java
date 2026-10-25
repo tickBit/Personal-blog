@@ -136,4 +136,14 @@ public class Emoji {
     public Emoji getEmoji() {
         return this;
     }
+    
+    public void resetEmoji() {
+        this.grinning_face = 0;
+        this.smiling_face_with_halo = 0;
+        this.smiling_face_with_heart_eyes = 0;
+        this.smiling_face_with_sunglasses = 0;
+        this.partying_face = 0;
+        this.disappointed_face = 0;
+        this.neutral_face = 0;
+    }
 }
