@@ -118,6 +118,12 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
     
+    @DeleteMapping("/{id}/reactions")
+    public ResponseEntity<Void> deleteReactions(@PathVariable Long id) {
+        postService.deleteReactions(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+    
     @PostMapping("/{id}/reactions")
     public ResponseEntity<Void> setEmoji(@PathVariable Long id, @RequestBody EmojiDto request) {
                 

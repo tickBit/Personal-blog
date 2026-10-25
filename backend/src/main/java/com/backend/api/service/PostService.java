@@ -149,4 +149,15 @@ public class PostService {
 
         postRepository.delete(post);
     }
+    
+    @Transactional
+    public void deleteReactions(Long id) {
+        Post post = postRepository.findById(id)
+                    .orElseThrow(() ->
+                        new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Post not found"));
+                    
+        post.resetAllEmojis();
+    }
 }

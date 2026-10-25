@@ -129,5 +129,11 @@ public class Post {
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
     }
-    
+       
+    public void resetAllEmojis() {
+        
+        Emoji emoji = this.getEmoji();
+        
+        emoji.resetEmoji();
+    }
 }
