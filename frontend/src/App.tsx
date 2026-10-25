@@ -94,6 +94,32 @@ export default function App() {
     navigate({ kind: "list" });
   };
 
+  const deleteReactions = async(id: string) => {
+    
+      const status = await postService.deleteAllReactions(id);
+      
+      if (status >= 200 && status < 300) {
+      currentPost!.emojies = [0, 0, 0, 0, 0, 0, 0];
+      setError(false);
+      setErrorMessage("");
+      navigate({ kind: "read", id: id });
+      return;
+    }
+
+    setError(true);
+
+    if (status === HttpStatusCode.Unauthorized || status === HttpStatusCode.Forbidden) {
+      setErrorMessage("You don't have persmission for that.");
+    } else if (status === AUTH_CONNECTION_ERROR) {
+      setErrorMessage("Could not connect to the server.");
+    } else if (status >= 500) {
+      setErrorMessage("Service is temporarily unavailable.");
+    } else {
+      setErrorMessage("Delete failed. Please try again.");
+    }
+    
+  }
+  
   const deletePost = async(id: string, page: number) => {
   
     const response = await postService.deletePost(id, page);
@@ -293,6 +319,7 @@ export default function App() {
             onDelete={authenticated ? () => handleDelete(currentPost!.id, page) : undefined}
             deleteConfirm={deleteConfirm === currentPost.id}
             onCancelDelete={() => setDeleteConfirm(null)}
+            onDeleteReactions={() => deleteReactions(currentPost!.id)}
           />
         )}
         {view.kind === "create" && authenticated && (
