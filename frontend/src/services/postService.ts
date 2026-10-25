@@ -12,6 +12,23 @@ const authHeaders = async () => ({
 
 export const postService = {
     
+    // delete all reactions from a post
+    async deleteAllReactions(postId: string): Promise<number> {
+        try {
+            const response = await axios.delete(
+                `${BASE_URL}/posts/${postId}/reactions`,
+                { headers: {
+                    ...await authHeaders(),
+                },
+                },
+            );
+            
+            return response.status;
+        } catch (err : AxiosError | any) {
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
+        }
+    },
+
     // reaction to post
     async reactToPost(postId: string, reaction: string): Promise<number> {
         try {
