@@ -38,7 +38,8 @@ export default function PostReader({
   const [lastIndex, setLastIndex] = useState<number | null>(null);
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [isAllZeros, setIsAllZeros] = useState<boolean>(true);
-  
+  const [showAll, setShowAll] = useState<boolean>(false);
+
   const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
 
   const isReactions = () => {
@@ -87,11 +88,16 @@ export default function PostReader({
     if (resp >= 200 && resp <= 299) {
       setIsReacted(true);
       setLastIndex(emojiList.indexOf(emoji));
+      post.emojies[lastIndex!]++;
     } else {
       console.log("Virhe")
     }
     
   };
+  
+  useEffect(() => {
+    isReactions();
+  }, [post])
   
   return (
     <article className="pt-10">
@@ -200,7 +206,7 @@ export default function PostReader({
           </div>
         )}
       </div>}
-      {!authenticated && isReacted === false ?
+      {!authenticated && !isReacted ?
        <>
        <div className="mt-16 pt-8 border-t border-[var(--border)]">
         <p
@@ -254,24 +260,27 @@ export default function PostReader({
         )}
         </div>
         </>
-      : <>
-        <div>
+      : 
           <div
             className="text-[11px] tracking-[0.06em] text-[var(--muted-foreground)]"
             style={{ fontFamily: "var(--font-mono)" }}
         >
             Overall reactions:
           </div>
+      }
           <div className="flex flex-col items-start gap-3">
           <div className="flex items-center gap-3"
             style={{ fontFamily: "var(--font-mono)" }}>
-              {isAllZeros && lastIndex == null && (<span>No reactions yet.</span>)}
+              {isAllZeros  ? (<span className="tracking-[0.06em] text-[var(--muted-foreground)]">No reactions yet.</span>) : (<>
               
-              {post && post.emojies.map((alpha, index) => {
+              {post.emojies.map((alpha, index) => {
                 const emoji = emojiList[index];
+                
                 if (!emoji && lastIndex === null) return null;
 
-                const opacity = alpha >= 0.3 ? alpha : 0;
+                let opacity: number;
+                if (!showAll) opacity = alpha >= 0.3 ? alpha : 0;
+                else opacity = alpha > 0 ? 1 : 0;
                 
                 return (
                   opacity > 0 &&
@@ -284,7 +293,9 @@ export default function PostReader({
                   </span>
                 );
               })}
-              </div>
+              </>)
+              }
+          </div>
               {authenticated && !isAllZeros && (
                 <button
                   onClick={() => { onDeleteReactions(post.id); post.emojies = [0,0,0,0,0,0,0]; }}
@@ -294,10 +305,26 @@ export default function PostReader({
                 Delete all reactions
                 </button>
                 )}
-          </div>
-          </div>
-        </>
-      }
+                {authenticated && !isAllZeros && !showAll && (<>
+                <button
+                  onClick={ () => setShowAll(!showAll) }
+                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                Show all reactions
+                </button>
+                </>)}
+                {authenticated && !isAllZeros && showAll && (<>
+                <button
+                  onClick={ () => setShowAll(!showAll) }
+                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                Show only reactions with alhpa &gt;=0.3
+                </button>
+                </>)
+                }
+            </div>
     </article>
   );
 }
