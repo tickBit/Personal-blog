@@ -11,6 +11,7 @@ interface Props {
   deleteConfirm: boolean;
   onCancelDelete: () => void;
   onReaction: (emoji: string) => Promise<number>;
+  onDeleteReactions: (id: string) => void;
 }
 
 type Italics = {
@@ -26,6 +27,7 @@ export default function PostReader({
   deleteConfirm,
   onCancelDelete,
   onReaction,
+  onDeleteReactions,
 }: Props) {
   
   const emojiList = ["😄", "😇", "😍", "😎", "🥳", "😞", "😐"];
@@ -260,7 +262,8 @@ export default function PostReader({
         >
             Overall reactions:
           </div>
-          <div className="flex justify-items-centery gap-3"
+          <div className="flex flex-col items-start gap-3">
+          <div className="flex items-center gap-3"
             style={{ fontFamily: "var(--font-mono)" }}>
               {isAllZeros && lastIndex == null && (<span>No reactions yet.</span>)}
               
@@ -281,7 +284,16 @@ export default function PostReader({
                   </span>
                 );
               })}
-              
+              </div>
+              {authenticated && !isAllZeros && (
+                <button
+                  onClick={() => { onDeleteReactions(post.id); post.emojies = [0,0,0,0,0,0,0]; }}
+                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                  style={{ fontFamily: "var(--font-mono)" }}
+                >
+                Delete all reactions
+                </button>
+                )}
           </div>
           </div>
         </>
