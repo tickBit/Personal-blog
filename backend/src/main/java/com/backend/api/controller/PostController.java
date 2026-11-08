@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,9 +23,9 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 
 import com.backend.api.DTO.EmojiDto;
+import com.backend.api.DTO.EmojiAmountDTO;
 import com.backend.api.entity.Post;
 import com.backend.api.service.PostService;
-
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -125,12 +126,27 @@ public class PostController {
     }
     
     @PostMapping("/{id}/reactions")
-    public ResponseEntity<Void> setEmoji(@PathVariable Long id, @RequestBody EmojiDto request) {
+    public ResponseEntity<Void> setEmoji(@PathVariable Long id, @Valid @RequestBody EmojiDto request) {
                 
         String emoji = request.getEmoji();
         
         postService.setEmoji(id, emoji);
         
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+    
+    @GetMapping("/{id}/reactions/amount")
+    public ResponseEntity<int[]> getEmojiValues(@PathVariable Long id) {
+                
+        return ResponseEntity.ok(postService.getEmojiValues(id));
+    }
+    
+    @PostMapping("/{id}/reactions/amount")
+    public ResponseEntity<Void> setReactionAmount(@PathVariable Long id, @RequestBody EmojiAmountDTO request) {
+        int index = request.getIndex();
+        int amount = request.getAmount();
+                
+        postService.setEmojiAmount(id, index, amount);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
     
