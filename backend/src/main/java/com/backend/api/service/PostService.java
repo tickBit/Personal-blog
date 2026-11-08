@@ -160,4 +160,26 @@ public class PostService {
                     
         post.resetAllEmojis();
     }
+    
+    @Transactional 
+    public int[] getEmojiValues(Long id) {
+        Post post = postRepository.findById(id)
+                    .orElseThrow(() ->
+                        new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Post not found"));
+                    
+        return post.getEmoji().getEmojiAmounts();
+    }
+
+    @Transactional
+    public void setEmojiAmount(long id, int index, int value) {
+        Post post = postRepository.findById(id)
+                    .orElseThrow(() ->
+                        new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Post not found"));
+                    
+        post.getEmoji().setEmojiAmount(index, value);
+    }
 }
