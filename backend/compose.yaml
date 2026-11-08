@@ -1,6 +1,8 @@
 services:
   backend:
     build: .
+    profiles:
+      - docker-backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -13,12 +15,12 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     mem_limit: 320m
     ports:
-      - '8080:8080'
+      - "127.0.0.1:8080:8080"
 
   nginx:
     image: nginx:alpine
-    depends_on:
-      - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8081:80"
     volumes:
