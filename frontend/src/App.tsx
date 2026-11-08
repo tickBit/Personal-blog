@@ -232,6 +232,18 @@ export default function App() {
     console.log("handle contact");
   };
   
+  const getAmountEmojis = async(id: string) => {
+  
+    const resp = await postService.getAmountOfEmojis(id);
+    return resp;
+  };
+  
+  const setAmountEmoji = async(id: string, index: number, amount: number) => {
+  
+    const resp = await postService.postAmountOfEmoji(id, index, amount);
+    return resp;
+  }
+  
   const currentPost =
     (view.kind === "read" || view.kind === "edit")
       ? posts!.find((p) => p?.id === view.id) ?? null
@@ -320,6 +332,8 @@ export default function App() {
             deleteConfirm={deleteConfirm === currentPost.id}
             onCancelDelete={() => setDeleteConfirm(null)}
             onDeleteReactions={() => deleteReactions(currentPost!.id)}
+            onGetEmojiAmounts={(id) => getAmountEmojis(id)}
+            onSetAmountEmoji={(id, index, amount) => setAmountEmoji(id, index, amount)}
           />
         )}
         {view.kind === "create" && authenticated && (
