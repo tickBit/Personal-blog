@@ -11,6 +11,38 @@ const authHeaders = async () => ({
 });
 
 export const postService = {
+
+    // get amount of emojis from a post
+    async postAmountOfEmoji(postId: string, index: number, amount: number): Promise<number> {
+        try {            
+            const response = await axios.post(
+                `${BASE_URL}/posts/${postId}/reactions/amount`, { index: index, amount: amount }
+                , { headers: {
+                    ...await authHeaders(),
+                },
+            });
+            return response.status;
+            
+        } catch (err : AxiosError | any) {
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
+          }        
+    },
+        
+    // get amount of emojis from a post
+    async getAmountOfEmojis(postId: string): Promise<number[] | number> {
+        try {            
+            const response = await axios(
+                `${BASE_URL}/posts/${postId}/reactions/amount`
+                , { headers: {
+                    ...await authHeaders(),
+                },
+            });
+            return response.data;
+            
+        } catch (err : AxiosError | any) {
+            return err.response?.status ?? HttpStatusCode.InternalServerError;
+          }        
+    },
     
     // delete all reactions from a post
     async deleteAllReactions(postId: string): Promise<number> {
