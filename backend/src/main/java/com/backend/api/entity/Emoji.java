@@ -146,4 +146,35 @@ public class Emoji {
         this.disappointed_face = 0;
         this.neutral_face = 0;
     }
+    
+    public int[] getEmojiAmounts() {
+        int[] amounts = {this.grinning_face, this.smiling_face_with_halo, this.smiling_face_with_heart_eyes, this.smiling_face_with_sunglasses, this.partying_face, this.disappointed_face, this.neutral_face};
+        return amounts;
+    }
+    
+    public void setEmojiAmount(int index, int amount) {
+        switch(index) {
+            case 0:
+                this.grinning_face = amount;
+                break;
+            case 1:
+                this.smiling_face_with_halo = amount;
+                break;
+            case 2:
+                this.smiling_face_with_heart_eyes = amount;
+                break;
+            case 3:
+                this.smiling_face_with_sunglasses = amount;
+                break;
+            case 4:
+                this.partying_face = amount;
+                break;
+            case 5:
+                this.disappointed_face = amount;
+                break;
+            case 6:
+                this.neutral_face = amount;
+                break;
+        }
+    }
 }
