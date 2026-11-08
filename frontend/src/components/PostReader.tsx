@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Post } from "../types";
 import { authService } from "@/services/authService";
 import Dialog from "./Dialog";
 import { useGuestAuth, STORAGE_KEY } from "@/context/GuestContext";
 import Banner from "./Banner";
+import { postService } from "@/services/postService";
 interface Props {
   post: Post;
   onEdit?: () => void;
@@ -12,6 +13,8 @@ interface Props {
   onCancelDelete: () => void;
   onReaction: (emoji: string) => Promise<number>;
   onDeleteReactions: (id: string) => void;
+  onGetEmojiAmounts: (id: string) => Promise<number | number[]>;
+  onSetAmountEmoji: (id: string, selected: number, value: number) => number;
 }
 
 type Italics = {
@@ -28,6 +31,8 @@ export default function PostReader({
   onCancelDelete,
   onReaction,
   onDeleteReactions,
+  onGetEmojiAmounts,
+  onSetAmountEmoji,
 }: Props) {
   
   const emojiList = ["😄", "😇", "😍", "😎", "🥳", "😞", "😐"];
@@ -39,12 +44,16 @@ export default function PostReader({
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [isAllZeros, setIsAllZeros] = useState<boolean>(true);
   const [showAll, setShowAll] = useState<boolean>(false);
-
+  const [selectedEmoji, setSelectedEmoji] = useState<number | null>(null);
+  const [values, setValues] = useState<number[] | number>(-1);
+  const [currValue, setCurrValue] = useState<number>(-1);
+  const [, setUpdateEmojies] = useState<boolean>(true);
+  
   const { guestId, setGuestId, hasAgreed, setHasAgreed, isAnswered, setIsAnswered } = useGuestAuth();
 
   const isReactions = () => {
     
-    if (!post) setIsAllZeros(false);
+    if (!post) setIsAllZeros(true);
     
     let allZeros = true;
     for (const e of post.emojies) {
@@ -53,11 +62,30 @@ export default function PostReader({
     setIsAllZeros(allZeros);
   }
   
-  useEffect(() => {
+  const handleEmojiAmount = (index: number) => {
     
-    isReactions();
+    if (typeof values === 'object') {
+      console.log(values);
+      console.log("Testi", values[index]);
+      return values[index];
+    }
     
-  }, []);
+    return undefined;
+  }
+
+  const getAmountEmojis = async(index: number) => {
+    const response = await onGetEmojiAmounts(post.id);
+    console.log(response);
+            
+    if (typeof response === 'object') {
+      setSelectedEmoji(index);
+      console.log(response[selectedEmoji!]);
+      setValues(response);
+      return response[selectedEmoji!];
+    }
+    
+    return null;
+  }
   
   // this sets the storage key value, if it's null
   useEffect(() => {
@@ -78,10 +106,8 @@ export default function PostReader({
       if (post.id === id && isReacted === false && index >= 5) {
         setIsReacted(true);
       }
-    });  
-
-  
-    
+    });
+   
   const sendEmoji = async(emoji: string) => {
     setConfirmReaction(null);
     const resp = await onReaction(emoji);
@@ -91,13 +117,42 @@ export default function PostReader({
       post.emojies[lastIndex!]++;
     } else {
       console.log("Virhe")
-    }
-    
+    }  
   };
+  
+  const setAmountEmojies = async() => {
+
+    if (typeof values === 'object') {
+      const response = await onSetAmountEmoji(post.id, selectedEmoji!, values[selectedEmoji!]);
+      
+      // if server here returns 200 OK, it's truth enough for
+      // the frontend to set the new emoji alpha values... 
+      if (response === 200) {
+        setUpdateEmojies(true);
+        
+        post.emojies[selectedEmoji!] = values[selectedEmoji!];
+        if (typeof values === 'object') {
+          
+          const maxValue = Math.max(...values);
+          
+          for (let i: number = 0; i < values.length; i++) {
+            post.emojies[i] = values[i] / maxValue;
+          }
+          
+          console.log("new emoji values", post.emojies);
+        }
+      }
+      console.log(response);
+    }  
+  }
   
   useEffect(() => {
     isReactions();
   }, [post])
+  
+  useEffect(() => { 
+    if (typeof values === 'object') setCurrValue(values[selectedEmoji!]);
+  }, [currValue])
   
   return (
     <article className="pt-10">
@@ -269,9 +324,9 @@ export default function PostReader({
           </div>
       }
           <div className="flex flex-col items-start gap-3">
-          <div className="flex items-center gap-3"
+          <div className="items-center gap-3"
             style={{ fontFamily: "var(--font-mono)" }}>
-              {isAllZeros  ? (<span className="tracking-[0.06em] text-[var(--muted-foreground)]">No reactions yet.</span>) : (<>
+              {isAllZeros ? (<span className="tracking-[0.06em] text-[var(--muted-foreground)]">No reactions yet.</span>) : (<>
               
               {post.emojies.map((alpha, index) => {
                 const emoji = emojiList[index];
@@ -288,6 +343,8 @@ export default function PostReader({
                     key={emoji}
                     style={{ opacity }}
                     title={`${Math.round(opacity * 100)}%`}
+                    onClick={authenticated === true ? () => getAmountEmojis(index) : undefined}
+                    className={authenticated === true ? "cursor-pointer" : undefined}
                   >
                     {emoji}
                   </span>
@@ -296,6 +353,7 @@ export default function PostReader({
               </>)
               }
           </div>
+          <div className="flex flex-row gap-3">
               {authenticated && !isAllZeros && (
                 <button
                   onClick={() => { onDeleteReactions(post.id); post.emojies = [0,0,0,0,0,0,0]; }}
@@ -324,6 +382,27 @@ export default function PostReader({
                 </button>
                 </>)
                 }
+            </div>
+            {authenticated && selectedEmoji !== null && typeof values === 'object'  && (
+              <div className="flex flex-row gap-3">
+                <span className="text-[29px]">{emojiList[selectedEmoji!]}</span>
+                <span className="text-[17px] px-3 py-1.5">{values[selectedEmoji!]}</span>
+                <button className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                        onClick={() => { currValue > 0 && values[selectedEmoji!]--; setCurrValue(values[selectedEmoji!]); setUpdateEmojies(false); }}
+                >-</button>
+                <button className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                        onClick={() => { values[selectedEmoji!]++; setCurrValue(values[selectedEmoji!]); setUpdateEmojies(false); }}
+                >+</button>
+                <button className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                        onClick={setAmountEmojies}
+                >
+                Set
+                </button>
+                <button className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
+                Delete
+                </button>
+              </div>
+            )}
             </div>
     </article>
   );
