@@ -15,7 +15,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findBySlug(String slug);
 
+    // Acquires a pessimistic write lock on the post row to prevent concurrent updates.
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    // Loads the post with its emoji in one query for update.
     @Query("SELECT p FROM Post p LEFT JOIN FETCH p.emoji WHERE p.id = :id")
     Optional<Post> findByIdForUpdate(@Param("id") Long id);
 
