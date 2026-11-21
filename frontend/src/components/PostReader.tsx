@@ -14,7 +14,7 @@ interface Props {
   onReaction: (emoji: string) => Promise<number>;
   onDeleteReactions: (id: string) => void;
   onGetEmojiAmounts: (id: string) => Promise<number | number[]>;
-  onSetAmountEmoji: (id: string, selected: number, value: number) => number;
+  onSetAmountEmoji: (id: string, selected: number, value: number) => Promise<number | number[]>;
 }
 
 type Italics = {
