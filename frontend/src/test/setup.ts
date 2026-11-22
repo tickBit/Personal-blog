@@ -4,6 +4,11 @@ import { cleanup } from "@testing-library/react";
 
 afterEach(() => cleanup());
 
+Object.defineProperty(window, "scrollTo", {
+  value: () => {},
+  writable: true,
+});
+
 // jsdom does not currently implement the native dialog methods.
 HTMLDialogElement.prototype.showModal = function () {
   this.open = true;
