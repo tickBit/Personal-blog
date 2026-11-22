@@ -24,6 +24,20 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+@theme {
+  --animate-marquee: marquee 14s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(100%);
+    }
+
+    to {
+      transform: translateX(-100%);
+    }
+  }
+}
+
 :root {
   --background: #f5f0e8;
   --foreground: #1a1612;
