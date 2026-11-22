@@ -17,6 +17,9 @@ export function Header({
   authenticated: boolean;
   onLogout: () => void;
 }) {
+  const SCROLL_TEXT =
+    "This is site is a portfolio project in web development. Feel free to look around and read and react to the blog posts.";
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 max-w-3xl mx-auto bg-[var(--background)] px-6 pt-10 pb-8">
       <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-5">
@@ -83,6 +86,11 @@ export function Header({
           </button>
         </div>
         )}
+      </div>
+      <div className="mt-2 w-full min-w-0 overflow-hidden text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]">
+        <div className="w-max whitespace-nowrap animate-marquee motion-reduce:animate-none">
+          {SCROLL_TEXT}
+        </div>
       </div>
     </header>
   );
