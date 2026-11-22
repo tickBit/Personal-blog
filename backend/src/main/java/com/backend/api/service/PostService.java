@@ -157,8 +157,10 @@ public class PostService {
                         new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Post not found"));
-                    
-        post.resetAllEmojis();
+
+        if (post.getEmoji() != null) {
+            post.resetAllEmojis();
+        }
     }
     
     @Transactional 
@@ -168,7 +170,11 @@ public class PostService {
                         new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Post not found"));
-                    
+
+        if (post.getEmoji() == null) {
+            return new int[] {0, 0, 0, 0, 0, 0, 0};
+        }
+
         return post.getEmoji().getEmojiAmounts();
     }
 
@@ -179,7 +185,12 @@ public class PostService {
                         new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
                             "Post not found"));
-                    
+
+        if (post.getEmoji() == null) {
+            post.setEmoji(new Emoji());
+            postRepository.saveAndFlush(post);
+        }
+
         post.getEmoji().setEmojiAmount(index, value);
     }
 }
