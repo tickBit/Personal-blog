@@ -18,7 +18,7 @@ export function Header({
   onLogout: () => void;
 }) {
   const SCROLL_TEXT =
-    "This is site is a portfolio project in web development. Feel free to look around and read and react to the blog posts.";
+    "This site is a portfolio project in web development. Feel free to look around and read and react to the blog posts.";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 max-w-3xl mx-auto bg-[var(--background)] px-6 pt-10 pb-8">
