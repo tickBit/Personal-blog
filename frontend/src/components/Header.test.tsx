@@ -28,6 +28,11 @@ describe("Header", () => {
     expect(onHome).toHaveBeenCalledOnce();
     expect(onContact).toHaveBeenCalledOnce();
     expect(screen.getByText("Ok.")).toBeVisible();
+    expect(
+      screen.getByText(
+        "This is site is a portfolio project in web development. Feel free to look around and read and react to the blog posts.",
+      ),
+    ).toBeVisible();
   });
 
   it("renders authenticated actions and error status", async () => {
