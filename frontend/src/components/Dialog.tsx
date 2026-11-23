@@ -39,7 +39,7 @@ export default function Dialog({ emoji, title, message, onConfirm, onCancel }: P
             {emoji}
           </p>
           )}
-          <div className="mt-6 flex justify-center gap-3">
+          <div className="mt-6 flex flex-col-reverse justify-center gap-3 sm:flex-row">
             {emoji !== null && (
               <button type="button" onClick={onCancel} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500">Cancel</button>
               )

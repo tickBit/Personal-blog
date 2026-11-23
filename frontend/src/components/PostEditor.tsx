@@ -86,7 +86,8 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
 
   return (
     <div className="pt-10">
-      <div className="flex items-center justify-between mb-10">
+      {/* Stack the editor heading and cancel action on phones, then use the normal side-by-side layout. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-8 sm:mb-10">
         <h1
           className="font-serif text-3xl font-semibold text-[var(--foreground)]"
           style={{ fontFamily: "var(--font-serif)" }}
@@ -134,7 +135,7 @@ export default function PostEditor({ post, page, onSave, onCancel }: Props) {
           />
         </Field>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Field label="Tags" hint="Comma-separated.">
             <input
               type="text"

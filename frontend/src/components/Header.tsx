@@ -21,8 +21,8 @@ export function Header({
     "This site is a portfolio project in web development. Feel free to look around and read and react to the blog posts.";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 max-w-3xl mx-auto bg-[var(--background)] px-6 pt-10 pb-8">
-      <div className="flex items-baseline justify-between border-b border-[var(--border)] pb-5">
+    <header className="fixed inset-x-0 top-0 z-50 mx-auto max-w-3xl bg-[var(--background)] px-4 pt-5 pb-4 sm:px-6 sm:pt-10 sm:pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] pb-3 sm:items-baseline sm:pb-5">
         <button
           onClick={onHome}
           className="group flex flex-col gap-0.5 text-left cursor-pointer"

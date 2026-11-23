@@ -47,14 +47,14 @@ export default function PostList({
       </ol>
       {totalPages > 1 && (
         <nav
-          className="flex items-center justify-between border-t border-[var(--border)] py-5"
+          className="grid grid-cols-[1fr_auto_1fr] items-center border-t border-[var(--border)] py-5"
           aria-label="Post pagination"
         >
           <button
             type="button"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 0}
-            className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="justify-self-start text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             ← Previous
@@ -69,7 +69,7 @@ export default function PostList({
             type="button"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages - 1}
-            className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="justify-self-end text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             Next →
@@ -93,17 +93,17 @@ function PostRow({
     <li>
       <button
         onClick={onClick}
-        className="group w-full text-left py-8 flex gap-6 cursor-pointer"
+        className="group w-full text-left py-6 flex gap-3 sm:gap-6 sm:py-8 cursor-pointer"
       >
         <span
-          className="text-[11px] text-[var(--muted-foreground)] w-7 shrink-0 pt-1 tabular-nums select-none"
+          className="hidden text-[11px] text-[var(--muted-foreground)] w-7 shrink-0 pt-1 tabular-nums select-none sm:block"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           {String(index).padStart(2, "0")}
         </span>
         <div className="flex-1 min-w-0">
           <h2
-            className="font-serif text-2xl font-semibold leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors mb-2"
+            className="font-serif text-xl sm:text-2xl font-semibold leading-snug text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors mb-2"
             style={{ fontFamily: "var(--font-serif)" }}
           >
             {post.title}
@@ -114,7 +114,7 @@ function PostRow({
           >
             {post.excerpt}
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <time
               className="text-[10px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]"
               style={{ fontFamily: "var(--font-mono)" }}

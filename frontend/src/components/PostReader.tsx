@@ -157,7 +157,7 @@ export default function PostReader({
   return (
     <article className="pt-10">
       {post.coverImage && (
-        <div className="mb-10 overflow-hidden bg-[var(--muted)] aspect-[2/1]">
+        <div className="mb-8 sm:mb-10 overflow-hidden bg-[var(--muted)] aspect-[16/10] sm:aspect-[2/1]">
           <img
             src={post.coverImage}
             alt={post.title}
@@ -168,7 +168,7 @@ export default function PostReader({
 
       {/* Meta bar */}
       <div
-        className="flex items-center gap-4 mb-6 text-[10px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]"
+        className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-6 text-[10px] tracking-[0.1em] uppercase text-[var(--muted-foreground)]"
         style={{ fontFamily: "var(--font-mono)" }}
       >
         <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
@@ -197,7 +197,7 @@ export default function PostReader({
 
       {/* Title */}
       <h1
-        className="font-serif text-4xl md:text-5xl font-semibold leading-[1.15] text-[var(--foreground)] mb-6"
+        className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold leading-[1.15] text-[var(--foreground)] mb-6"
         style={{ fontFamily: "var(--font-serif)" }}
       >
         {post.title}
@@ -205,7 +205,7 @@ export default function PostReader({
 
       {/* Excerpt as lede */}
       <p
-        className="text-xl text-[var(--muted-foreground)] leading-relaxed mb-10 border-l-2 border-[var(--accent)] pl-5 italic"
+        className="text-lg sm:text-xl text-[var(--muted-foreground)] leading-relaxed mb-8 sm:mb-10 border-l-2 border-[var(--accent)] pl-4 sm:pl-5 italic"
         style={{ fontFamily: "var(--font-body)" }}
       >
         {post.excerpt}
@@ -219,7 +219,7 @@ export default function PostReader({
       </div>
 
       {/* Actions */}
-      {onEdit && onDelete && <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center gap-4">
+      {onEdit && onDelete && <div className="mt-12 sm:mt-16 pt-8 border-t border-[var(--border)] flex flex-wrap items-center gap-3 sm:gap-4">
         <button
           onClick={onEdit}
           className="text-[11px] tracking-[0.1em] uppercase text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors border border-[var(--border)] hover:border-[var(--foreground)] px-4 py-2 cursor-pointer"
@@ -237,7 +237,7 @@ export default function PostReader({
             Delete
           </button>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span
               className="text-[11px] tracking-[0.06em] text-red-700"
               style={{ fontFamily: "var(--font-mono)" }}
@@ -270,9 +270,9 @@ export default function PostReader({
         >
           Your reaction to this post:
         </p>
-        <p className="flex items-center gap-1">
+        <p className="flex flex-wrap items-center gap-1">
           {emojiList.map((emoji, index) => (
-            <span key={index} className="mr-1 text-[48px] cursor-pointer" onClick={() => { setConfirmReaction(index); } }>{emoji}</span>
+            <span key={index} className="mr-1 text-[36px] sm:text-[48px] cursor-pointer" onClick={() => { setConfirmReaction(index); } }>{emoji}</span>
           ))}
         </p>
         

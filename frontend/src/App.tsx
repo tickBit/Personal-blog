@@ -270,7 +270,8 @@ export default function App() {
       />
     <div className="min-h-screen bg-[var(--background)]">
 
-      <main className="max-w-3xl mx-auto px-6 pt-32 pb-24">
+      {/* sm:px-6 keeps small screens edge-to-edge enough while restoring a comfortable gutter on tablets and larger. */}
+      <main className="mx-auto w-full max-w-3xl px-4 pt-36 pb-16 sm:px-6 sm:pt-32 sm:pb-24">
         
         {view.kind !== "login" && !isAnswered && !hasAgreed && (
           <Banner text_en={"Do you accept a random token into your browser's local storage? If you don't, you can't react to posts."}

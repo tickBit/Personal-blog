@@ -10,7 +10,7 @@ interface Props {
 export default function Contact(props: Props) {
     return (
         <>
-        <div className="text-center">
+        <div className="mx-auto max-w-md px-4 text-center sm:px-0">
             <h2 className="font-serif text-4xl md:text-4xl font-bold leading-[1.15] text-[var(--foreground)] mb-6">Contact me</h2>
             
             

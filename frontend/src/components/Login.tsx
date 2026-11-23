@@ -22,7 +22,7 @@ export default function Login({ onLogin, onCancel }: LoginProps) {
   };
 
   return (
-    <section className="max-w-sm mx-auto pt-14">
+    <section className="mx-auto max-w-sm px-0 pt-8 sm:px-4 sm:pt-14">
       <h1 className="font-serif text-3xl font-semibold mb-8">Sign in</h1>
       <form onSubmit={submit} className="flex flex-col gap-5">
         <label className="flex flex-col gap-2 text-sm">
