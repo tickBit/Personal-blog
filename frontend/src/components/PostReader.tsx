@@ -342,57 +342,64 @@ export default function PostReader({
               </>)
               }
           </div>
-          <div className="flex flex-row gap-3">
-              {authenticated && !isAllZeros && (
-                <button
-                  onClick={() => { onDeleteReactions(post.id); post.emojies = [0,0,0,0,0,0,0]; }}
-                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                Delete all reactions
-                </button>
-                )}
-                {authenticated && !isAllZeros && !showAll && (<>
-                <button
-                  onClick={ () => setShowAll(!showAll) }
-                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                Show all reactions
-                </button>
-                </>)}
-                {authenticated && !isAllZeros && showAll && (<>
-                <button
-                  onClick={ () => setShowAll(!showAll) }
-                  className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                Show only reactions with alhpa &gt;=0.3
-                </button>
-                </>)
-                }
-            </div>
-            {authenticated && selectedEmoji !== null && typeof values === 'object'  && (
-              <div className="flex flex-row gap-3">
-                <span className="text-[29px]">{emojiList[selectedEmoji!]}</span>
-                <span className="text-[17px] px-3 py-1.5">{values[selectedEmoji!]}</span>
-                <button className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+          {authenticated && (
+            <div className="grid w-fit grid-cols-[12.5rem_12.5rem] gap-x-3 gap-y-3">
+              {!isAllZeros && (
+                <>
+                  <button
+                    onClick={() => { onDeleteReactions(post.id); post.emojies = [0,0,0,0,0,0,0]; }}
+                    className="w-full text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    Delete all reactions
+                  </button>
+                  <button
+                    onClick={() => setShowAll(!showAll)}
+                    className="w-full text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    {showAll ? "Show only reactions with alhpa >=0.3" : "Show all reactions"}
+                  </button>
+                </>
+              )}
+              {selectedEmoji !== null && typeof values === "object" && (
+                <>
+                  <div className="flex w-full items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-10 text-[29px]">{emojiList[selectedEmoji!]}</span>
+                      <span className="w-10 px-3 py-1.5 text-right text-[17px] tabular-nums">{values[selectedEmoji!]}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
                         onClick={() => { currValue > 0 && values[selectedEmoji!]--; setCurrValue(values[selectedEmoji!]); setUpdateEmojies(false); }}
-                >-</button>
-                <button className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <button
+                        className="text-[17px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
                         onClick={() => { values[selectedEmoji!]++; setCurrValue(values[selectedEmoji!]); setUpdateEmojies(false); }}
-                >+</button>
-                <button className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
-                        onClick={setAmountEmojies}
-                >
-                Set
-                </button>
-                <button className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
-                Delete
-                </button>
-              </div>
-            )}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer"
+                      onClick={setAmountEmojies}
+                    >
+                      Set
+                    </button>
+                    <button className="text-[11px] tracking-[0.1em] uppercase text-red-700 border border-red-700 px-3 py-1.5 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
+          )}
+          </div>
     </article>
   );
 }
