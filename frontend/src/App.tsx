@@ -235,13 +235,46 @@ export default function App() {
   const getAmountEmojis = async(id: string) => {
   
     const resp = await postService.getAmountOfEmojis(id);
-    return resp;
+    
+    if (typeof resp === 'object') {
+      setError(false);
+      return resp;
+    }
+    
+    setError(true);
+    
+    if (resp === HttpStatusCode.Unauthorized || resp === HttpStatusCode.Forbidden) {
+        setErrorMessage("You don't have persmission for that.");
+      } else if (resp === AUTH_CONNECTION_ERROR) {
+        setErrorMessage("Could not connect to the server.");
+      } else if (resp >= 500) {
+        setErrorMessage("Service is temporarily unavailable.");
+      } else {
+        setErrorMessage("Delete failed. Please try again.");
+      }
+    return -1;
   };
   
   const setAmountEmoji = async(id: string, index: number, amount: number) => {
   
     const resp = await postService.postAmountOfEmoji(id, index, amount);
-    return resp;
+    if (resp >= 200 && resp < 300) {
+      setError(false);
+      return resp;
+    }
+    
+    setError(true);
+    
+    if (resp === HttpStatusCode.Unauthorized || resp === HttpStatusCode.Forbidden) {
+        setErrorMessage("You don't have persmission for that.");
+      } else if (resp === AUTH_CONNECTION_ERROR) {
+        setErrorMessage("Could not connect to the server.");
+      } else if (resp >= 500) {
+        setErrorMessage("Service is temporarily unavailable.");
+      } else {
+        setErrorMessage("Delete failed. Please try again.");
+      }
+    return -1;
   }
   
   const currentPost =
