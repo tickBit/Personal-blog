@@ -61,17 +61,6 @@ export default function PostReader({
     }
     setIsAllZeros(allZeros);
   }
-  
-  const handleEmojiAmount = (index: number) => {
-    
-    if (typeof values === 'object') {
-      console.log(values);
-      console.log("Testi", values[index]);
-      return values[index];
-    }
-    
-    return undefined;
-  }
 
   const getAmountEmojis = async(index: number) => {
     const response = await onGetEmojiAmounts(post.id);
